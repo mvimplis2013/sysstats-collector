@@ -19,6 +19,21 @@ class CPUCollector():
     INTERVAL = 1
     SIMPLE = False
 
+    def __init__(self):
+        self.last_values = {}
+
+    def derivative(self, path, new, max_valie=0):
+        """
+        Calculate the derivative of metric
+        """
+        if path in self.last_values:
+            old = self.last_values[path]
+
+            if new < old:
+        old 
+
+        
+
     def collect(self):
         """
         get cpu time list
@@ -110,6 +125,9 @@ class CPUCollector():
                 stats = results[cpu]
                 for s in stats.keys():
                     metric_name = '.'.join([cpu,s])
-                    print(metric_name)
+                    
+                    #Get actual data
+                    if ()
+
 
             return results
