@@ -42,6 +42,21 @@ _KEY_MAPPING = [
 class MemoryCollector():
     PROC = '/proc/meminfo'
 
+    def __init__(self, config=None, handlers=[], name=None, configfile=None):
+        """
+        Create a new instance of the Collector class 
+        
+        Keyword Arguments:
+            config {[type]} -- [description] (default: {None})
+            handlers {list} -- [description] (default: {[]})
+            name {[type]} -- [description] (default: {None})
+            configfile {[type]} -- [description] (default: {None})
+        """
+        
+        # Initialize Logger
+        self.log = logging.getLogger('zephyr')
+
+
     def get_default_config(self):
         """
         Returns the default collector settings
