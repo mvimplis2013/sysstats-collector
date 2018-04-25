@@ -7,6 +7,16 @@ import signal
 import sys
 import time
 
+from diamond.utils.classes import load_collectors
+# from diamond.utils.classes import initialize_collector
+# from diamond.utils.classes import load_dynamic_class
+# from diamond.utils.classes import load_dynamic_class
+# from diamond.utils.classes import load_handlers
+# from diamond.utils.classes import load_include_path 
+
+from diamond.utils.config import str_to_bool
+from diamond.utils.config import load_config
+
 try:
     from setproctitle import getproctitle, setproctitle
 except ImportError:
@@ -20,26 +30,6 @@ sys.path.append(
         )
     )       
 )
-
-    def str_to_bool(value):
-        """
-        Converts string truthy/ falsey string to a bool.
-        Empty strings are false. 
-        
-        Arguments:
-            value {[type]} -- [description]
-        """
-        if isinstance(value, basestring):
-            value = value.strip().lower()
-
-            if value in ['true', 't', 'yes', 'y']:
-                return True
-            elif value in ['false', 'f', 'no']:
-                return False
-            else:
-                raise NotImplementedError("Unknown bool %s" % value)
-
-            return value    
 
 class Server():
     """
@@ -80,11 +70,12 @@ class Server():
         ##################################################
         self.config = load_config(self.configfile)
 
-        collectors = load_collectors(self.config['server']['collectors_path'])
-        metric_queue_size = int(self.config['server'].get('metric_queue_size', 16384))
+        collectors = load_collectors(
+            self.config['server']['collectors_path'])
+        # metric_queue_size = int(self.config['server'].get('metric_queue_size', 16384))
 
-        self.metric_queue = self.manager.Queue(maxsize=metric_queue_size)
-        self.log.debug('metric_queue_size: %d', metric_queue_size)
+        # self.metric_queue = self.manager.Queue(maxsize=metric_queue_size)
+        # self.log.debug('metric_queue_size: %d', metric_queue_size)
 
         ###################################################
         # Handlers
@@ -92,7 +83,7 @@ class Server():
         # TODO: Eventually move each handler to it's own 
         #       process space
         ###################################################
-        if 'handlers_path' in self.config['server']:
+        """if 'handlers_path' in self.config['server']:
             handlers_path = self.config['server']['handlers_path']
 
             # Make a list 
@@ -160,3 +151,80 @@ class Server():
                         continue
                     running_collectors.append(collector)
                 running_collectors = set(running_collectors)
+
+                # Collectors that are running but shouldn't be
+                for process_name  in running_processes - running_collectors:
+                    if 'Collector' not in process_name:
+                        continue
+                    for process in active_children:
+                        if process.name == process_name:
+                            process.terminate()
+
+                collector_classes = dict(
+                    (cls.__name__.split('.')[-1], cls)
+                    for cls in collectors.values()
+                )
+
+                load_delay = self.config['server'].get('collectors_load_delay', 1.0)
+
+                for process_name in running_collectors - running_processes:
+                    # To handle running multiple collectors concurrently, 
+                    # we split on white space and use the first word as
+                    # the collector name to spin
+                    collector_name = process_name.split()[0]
+
+                    if 'Collector' not in collector_name:
+                        continue
+
+                    if collector_name not in collector_classes:
+                        self.log.error('Cannot find collector %s', collector_name)
+                        continue
+
+                    collector = initialize_collector( 
+                        collector_classes[collector_name],
+                        name=process_name,
+                        configfile=self.configfile,
+                        handlers=[self.handler_queue])
+
+                    if collector is None:
+                        self.log.error('Failed to load collector %s', process_name)
+                        continue
+
+                    # Splay the loads 
+                    time.sleep(float(load_delay))
+
+
+                    process = multiprocessing.Process(
+                        name=process_name, 
+                        target=collector_process,
+                        args=(collector, self.metric_queue, self.log)
+                    )
+                    process.daemon = True
+                    process.start()
+
+                if not handlers_process.is_alive():
+                    self.log.error('Handling process exited')
+                    if str_to_bool(self.config('server').get(
+                        'abort_on_handlers_process_exit', 'False')):
+                        raise Exception('Handlers process exited')
+
+                ########################################################
+
+                time.sleep(1)
+
+            except SIGHUPException:
+                # ignore further SIGHUPs for now
+                original_sighup_handler = signal.getsignal(signal.SIGHUP)
+                signal.signal(signal.SIGHUP, signal.SIG_IGN)
+
+                self.log.info('Reloading state due to HUP')
+                self.config = load_config(self.configfile)
+
+                collectors = load_collectors(
+                    self.config['server']['collectors_path']
+                )
+
+                # restore SIGHUP handler
+                signal.signal(signal.SIGHUP, original_sighup_handler)
+                """
+
