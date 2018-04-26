@@ -13,9 +13,9 @@ import time
 import re
 import subprocess
 
-# from diamond.metric import Metric
-# from diamond.utils.config import load_config
-# from error import DiamondException
+from diamond.metric import Metric
+from diamond.utils.config import load_config
+from error import DiamondException
 
 class Collector():
     """
