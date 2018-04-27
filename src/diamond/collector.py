@@ -17,6 +17,27 @@ from diamond.metric import Metric
 from diamond.utils.config import load_config
 from error import DiamondException
 
+# Detect the architecture of the system and set the counters for 
+# MAX_VALUES appropriately. Otherwise, rolling over counters will
+# cause incorrect or negative values.
+if platform.architecture()[0] == '64bit':
+    MAX_COUNTER = (2**64)-1
+else:
+    MAX_COUNTER = (2**32)-1
+
+def get_hostname(config, method=None):
+    """
+    Returns a hostname as configured by the user
+    
+    Arguments:
+        config {[type]} -- [description]
+    
+    Keyword Arguments:
+        method {[type]} -- [description] (default: {None})
+    """
+    method = method or config.get('hostname_method', 'smart')
+    print()
+
 class Collector():
     """
     The Collector class is a base class for all metric collectors.

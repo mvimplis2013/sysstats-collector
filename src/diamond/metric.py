@@ -29,10 +29,11 @@ class Metric():
         """
         
         # Validate the path, value, and metric_type submitted
-        if (None in [path, value] or metric_type not in ('COUNTER', 'GAUGE')):
+        if (None in [path, value] or 
+            metric_type not in ('COUNTER', 'GAUGE')):
             raise DiamondException(("Invalid parameter when creating new "
                 "Metric with path: %r value: %r "
-                "metric_type: %r") % (path, value, metric_type)
+                "metric_type: %r") % (path, value, metric_type))
 
         # if no timestamp was passed in, set it to the current time 
         if timestamp is None:
@@ -68,9 +69,9 @@ class Metric():
         self.ttl = ttl
 
     def __repr__(self):
-        """"
+        """
         Return the Metric as a string
-        """"
+        """
         if not isinstance(self.precision, (int, long)):
             log = logging.getLogger('diamond')
             log.warn('Metric %s does not have a valid precision', self.path)

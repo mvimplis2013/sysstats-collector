@@ -11,7 +11,7 @@ import imp
 
 from diamond.util import load_class_from_name
 from diamond.collector import Collector
-from diamond.handler.Handler import handler
+from diamond.handler.Handler import Handler
 
 logger = logging.getLogger('diamond')
 
@@ -28,10 +28,39 @@ def load_collectors(paths):
 
     return collectors
 
+def load_handlers(config, handler_names):
+    """
+    Load handlers
+    
+    Arguments:
+        config {[type]} -- [description]
+        handler_names {[type]} -- [description]
+    """
+
+    handlers = []
+
+    if isinstance(handler_names, basestring):
+        handler_names = [handler_names]
+
+    for handler in handler_names:
+        logger.debug("Loading Handler %s", handler)
+
+        try:
+            # Load Handler Class
+            cls = load_dynamic_class(handler, Handler)
+        except (ImportError, SyntaxError):
+            # Log Error
+            logger.warning("Failed to load hadler %s. %s", 
+                handler, traceback.format_exc())
+
+            continue
+
+    return handlers
+
 def load_dynamic_class(fqn, subclass):
-    """"
+    """
     Dynamically load fqn class and verify it's a subclass 
-    """"
+    """
     if not isinstance(fqn, basestring):
         return fqn
 
@@ -74,7 +103,7 @@ def load_collectors_from_paths(paths):
     if paths is None:
         return
 
-    if isinstance(paths, basestring):
+    if isinstance(paths, str):
         paths = paths.split(',')
         paths = map(str.strip, paths)
 
@@ -99,9 +128,8 @@ def load_collectors_from_paths(paths):
 
             # Ignore anything that isn' a .py file
             elif (os.path.isfile(fpath) and len(f) > 3 and 
-                f[-3] == '.py' 
-                and f[0:4] != 'test' 
-                and f[0] != '.':
+                f[-3] == '.py' and f[0:4] != 'test' 
+                and f[0] != '.'):
                 
                 modname = f[:-3]
                 fp, pathname, description = imp.find_module(modname, [path])
@@ -130,7 +158,7 @@ def load_collectors_from_paths(paths):
     # Return Collector classes
     return collectors
 
-def get_collectors_from_entry_point(path):
+def load_collectors_from_entry_point(path):
     """
     Load collectors that were installed into an entry_point
     
