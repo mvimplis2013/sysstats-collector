@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+##!/usr/bin/env python
 #############################################################################################
 
 from __future__ import print_function
@@ -29,6 +29,9 @@ from diamond.collector import str_to_bool
 def getIncludePaths(path):
     for f in os.listdir(path):
         cPath = os.path.abspath(os.path.join(path, f))
+        
+        # print('->', cPath)
+        # print('syspath -> ', sys.path)
 
         if os.path.isfile(cPath) and len(f) > 3 and f[-3:] == '.py':
             sys.path.append(os.path.dirname(cPath))
@@ -45,12 +48,18 @@ def getCollectors(path):
         cPath = os.path.abspath(os.path.join(path, f))
         if (os.path.isfile(cPath) and len(f) > 3 and f[-3:] == '.py' and f[0:4] != 'test'):
             modname = f[:-3]
+            print('modname -->', modname)
+
             try:
                 # Import the module
                 module = __import__(modname, globals(), locals(), ['*'])
                 # Find the name
                 for attr in dir(module):
+                    # print('attr -->', attr)
+
                     cls = getattr(module, attr)
+                    # print('class -> ', cls )
+
                     try:
                         if (issubclass(cls, Collector) and cls.__name__ not in collectors):
                             collectors[cls.__name__] = module
@@ -151,15 +160,16 @@ if __name__ == '__main__':
     if not options.dump:
         print('')
         print('I will be over writing files in')
-        print(config['server']['collector_config_path'])
+        print(config['server']['collectors_config_path'])
         print('Please type yes to continue')
 
-        val = raw_input('Are you sure? ')
+        val = input('Are you sure? ')
         if val != 'yes':
             sys.exit(1)
 
-    getIncludePaths(configs['server']['collectors_path'])
+    getIncludePaths(config['server']['collectors_path'])
     getCollectors(config['server']['collectors_path'])
+    sys.exit(-1)
 
     tests = []
 

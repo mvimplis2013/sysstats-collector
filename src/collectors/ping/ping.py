@@ -23,10 +23,17 @@ Test your configuration using the following command:
 diamond-setup --print -C PingCollector
 
 You should get a response back that indicates ... 'enabled': True
+and see entries for your targets in pairs like:
+'target_1': 'example.org'
 
+The graphite nodes pushed are derived from the pinged hostnames by 
+replacing all dots with underscores, i.e. 'www.example.org' becomes 
+'www_example_org'.
 """
 
-class PingCollector():
+import diamond.collector
+
+class PingCollector(diamond.collector.ProcessCollector):
     def get_default_config(self):
         """
         Returns the default collector settings
@@ -37,7 +44,7 @@ class PingCollector():
             'bin': '/bin/ping'
         })
 
-        retirn config
+        return config
 
     def collect(self):
         for key in self.config.keys():

@@ -36,8 +36,109 @@ def get_hostname(config, method=None):
         method {[type]} -- [description] (default: {None})
     """
     method = method or config.get('hostname_method', 'smart')
-    print()
+    
+    # Case insensitive method
+    method = method.lower()
 
+    if 'hostname' in config and method != 'shell':
+        return config['hostname']
+
+    if method in get_hostname.cached_results:
+        return get_hostname.cached_results['hostname']
+
+    if method == 'shell':
+        if hostname not in config:
+            raise DiamondException(
+                "hostname must be set to a shell command for"
+                " hostname_method = shell"
+            )
+        else:
+            proc = subprocess.Open(config['hostname'], shell=True, 
+                stdout=subprocess.PIPE)
+            hostname = proc.communicate()[0].strip()
+            if proc.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    proc.returncode, config['hostname'])
+
+            get_hostname.cached_results[method] = hostname
+            return hostname
+    
+    if method == 'smart':
+        hostname = get_hostname(config, 'fqdn_short')
+        if hostname != 'localhost':
+            get_hostname.cached_results[method] = hostname
+        return hostname
+
+    if method == 'fqdn-short':
+        hostname = socket.getfqdn().split('.')[0]
+        get_hostname.cached_results[method] = hostname
+        if hostname == '':
+            raise DiamondException('Hostname is empty ?!')
+        return hostname
+
+    if method == 'fqdn':
+        hostname = socket.getfqdn().replace('.', '_')
+        get_hostname.cached_results[method] = hostname
+        if hostname == '':
+            raise DiamondException('Hostname is empty ?!')
+        return hostname
+    
+    if method == 'fqdn_rev':
+        hostname = socket.getfqdn().split('.')
+        hostname.reverse()
+        hostname = '.'.join(hostname)
+        get_hostname.cached_results[method] = hostname
+        if hostname == '':
+            raise DiamondException('Hostname is empty !?')
+        return hostname
+
+    if method == 'uname_short':
+        hostname = os.uname()[1].split('.')[0]
+        get_hostname.cached_results[method] = hostname
+        if hostname == '':
+            raise DiamondException('Hostname is Empty !?')
+        return hostname
+
+    if method == 'uname_rev':
+        hostname = os.uname()[1].split('.')
+        hostname.reverse()
+        hostname = '.'.join(hostname)
+        get_hostname.cached_results[method] = hostname
+        if hostname == '':
+            raise DiamondException('Hostname is Empty !?')
+        return hostname
+    
+    if method == 'hostname':
+        hostname = socket.gethostname()
+        get_hostname.cached_results[method] = hostname
+        if hostname == '':
+            raise DiamondException('Hostname is Empty !?')
+        return hostname
+
+    if method == 'hostname_stort':
+        hostname = socket.gethostname().split('.')[0]
+        get_hostname.cached_results[method] = hostname
+        if hostname == '':
+            raise DiamondException('Hostname is Empty !?')
+        return hostname
+
+    if method == 'hostname_rev':
+        hostname = socket.gethostname().split('.')
+        hostname.reverse()
+        hostname = '.'.join(hostname)
+        get_hostname.cached_results[method] = hostname
+        if hostname == '':
+            raise DiamondException('Hostname is Empty !?')
+        return hostname
+
+    if method == 'none':
+        get_hostname.cached_results[method] = None
+        return None
+
+    raise NotImplementedError( config['hostname_method' ])
+
+get_hostname.cached_results = {}
+ 
 def str_to_bool(value):
     """
     Converts string truthy/falsey strings to a bool
@@ -57,8 +158,6 @@ def str_to_bool(value):
             raise NotImplementedError('Unknown bool %s' % value)
 
     return value
-
-        
 
 class Collector():
     """

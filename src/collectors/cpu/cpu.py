@@ -6,37 +6,62 @@ The CPUCollector collects CPU utilization metric using ... /proc/stat
 
 """
 
+import diamond.collector 
 import os
 import time
+from diamond.collector import str_to_bool
 
 try: 
     import psutil
 except ImportError:
     psutil = None
 
-class CPUCollector():
+class CPUCollector(diamond.collector.Collector):
     PROC = '/proc/stat'
     INTERVAL = 1
-    SIMPLE = False
 
-    def __init__(self):
-        self.last_values = {}
+    MAX_VALUES = {
+        'user': diamond.collector.MAX_COUNTER,
+        'nice': diamond.collector.MAX_COUNTER,
+        'system': diamond.collector.MAX_COUNTER,
+        'idle': diamond.collector.MAX_COUNTER,
+        'iowait': diamond.collector.MAX_COUNTER,
+        'irq': diamond.collector.MAX_COUNTER,
+        'softirq': diamond.collector.MAX_COUNTER,
+        'steal': diamond.collector.MAX_COUNTER,
+        'guest': diamond.collector.MAX_COUNTER,
+        'guest_nice': diamond.collector.MAX_COUNTER,
+    }
 
-    def derivative(self, path, new, max_valie=0):
+    def get_default_config_help(self):
+        config_help = super(CPUCollector, self).get_default_config_help()
+        config_help.update({
+            'percore': 'Collect metrics per cpu core or just total',
+            'simple': 'only return aggregate CPU% metric',
+            'normalize': 'for cpu totals, divide by the number of CPUs',
+        })
+
+        return config_help
+
+    def get_default_config(self):
         """
-        Calculate the derivative of metric
+        Returns the default collector settings 
         """
-        if path in self.last_values:
-            old = self.last_values[path]
+        config = super(CPUCollector, self).get_default_config()
 
-            if new < old:
-        old 
+        config.update({
+            'path': 'cpu',
+            'percore': 'True',
+            'xenfix': None, 
+            'simple': 'False',
+            'normalize': 'False',
+        })
 
-        
+        return config
 
     def collect(self):
         """
-        get cpu time list
+        Collector CPU stats
         """
 
         def cpu_time_list():
@@ -52,7 +77,7 @@ class CPUCollector():
 
         def cpu_delta_time(interval):
             """
-            get before and after cpu times for usage calc
+            Get before and after cpu times for usage calc
             """
             pre_check = cpu_time_list()
             time.sleep(interval)
@@ -66,11 +91,11 @@ class CPUCollector():
         if os.access(self.PROC, os.R_OK):
             
             # If SIMPLE ... only return aggregate CPU% metric
-            if self.SIMPLE:
+            if str_to_bool(self.config['simple']):
                 dt = cpu_delta_time(self.INTERVAL)
                 cpuPct = 100 - (dt[len(dt)-1]*100.00 / sum(dt))
                 
-                # self.publish('percent', str('%.4f' % cpuPct))
+                self.publish('percent', str('%.4f' % cpuPct))
                 print('percent {%.4f}' % cpuPct)
 
                 return True 
@@ -78,7 +103,7 @@ class CPUCollector():
             results = {}
 
             # Open file
-            file = open(self.PROC, 'r')
+            file = open(self.PROC)
 
             ncpus = -1  # do not want to count the ..cpu(total)
             for line in file:
@@ -124,10 +149,120 @@ class CPUCollector():
             for cpu in results.keys():
                 stats = results[cpu]
                 for s in stats.keys():
+                    # Get Metric Name
                     metric_name = '.'.join([cpu,s])
                     
                     #Get actual data
-                    if ()
+                    if ((str_to_bool(self.config['normalize']) and
+                        cpu == 'total' and ncpus > 0)):
+                        metrics[metric_name] = self.derivative(
+                            metric_name, long(stats[s]),
+                            self.MAX_VALUES[s] / ncpus)
+                    else:
+                        metrics[metric_name] = self.derivative(
+                            metric_name, long(stats[s]),
+                            self.MAX_VALUES[s]
+                        )
 
+            # Check for a bug in xen where the idle time is doubled
+            # for guest. 
+            if os.config['xenfix'] is None or self.config['xenfix'] is True:
+                if os.path.isdir('/proc/xen'):
+                    total = 0
+                    for metric_name in metrics.keys():
+                        if 'cpu0.' in metric_name:
+                            total += int(metrics[metric_name])
+                    if total > 110:
+                        self.config['xenfix'] = True
+                        for mname in metrics.keys():
+                            if '.idle' in mname:
+                                metrics[mname] = float(metrics[mname])/2
+                    elif total >0:
+                        self.config['xenfix'] = False
+                else:
+                    self.config['xenfix'] = False
 
-            return results
+            # Publish Metric Derivatives
+            for metric_name in metrics.keys():
+                self.publish(metric_name, metrics[metric_name], precision=2)
+
+            return True
+        else:
+            if not psutil:
+                self.log.error('Unable to import psutil')
+                self.log.error('No CPU metrics retrieved')
+                return None
+
+            cpu_time = psutil.cpu_times(True)
+            cpu_count = len(cpu_time)
+            total_time = psutil.cpu_times()
+            for i in range(0, len(cpu_time)):
+                metric_name = 'cpu' + str(i)
+                self.publish(
+                    metric_name + '.user', 
+                    self.derivative(
+                        metric_name + '.user',
+                        cpu_time[i].user,
+                    self.MAX_VALUES['user'],
+                ), precision=2)
+
+                if hasattr(cpu_time[i], 'nice'):
+                    self.publish(
+                        metric_name + '.nice',
+                        sel.derivative(
+                            metric_name + '.nice',
+                            cpu_time[i].nice,
+                            self.MAX_VALUES['nice']
+                        ), precision=2)
+
+                self.publish(
+                    metric_name + '.system',
+                    self.derivative(metric_name + '.system',
+                        cpu_time[i].system,
+                        self.MAX_VALUES['system']
+                    ), precision=2    
+                )
+
+                self.publish( 
+                    metric_name + '.idle',
+                    self.derivative(metric_name + '.idle',
+                        cpu_time[i].idle,
+                        self.MAX_VALUES['idle']
+                    ), precision=2
+                )
+            
+            metric_name = 'total'
+            self.publish(
+                metric_name + '.user',
+                self.derivative(metric_name + '.user',
+                    total_time.user,
+                    self.MAX_VALUES['user']) / cpu_count,
+                precision=2)
+
+            if hasattr(total_time, 'nice'):
+                self.publish(metric_name + '.nice',
+                    self.derivative(metric_name + '.nice',
+                        total_time.nice,
+                        self.MAX_VALUES['nice']) / cpu_count,
+                precision=2)
+
+            self.publish(
+                metric_name + '.system',
+                self.derivative(metric_name + '.system',
+                    self.derivative(metric_name + ".system",
+                    total_time.system,
+                    self.MAX_VALUES['system']) / cpu_count,
+                precision=2)
+
+            self.publish(
+                metric_name + '.idle',
+                self.derivative(metric_name + '.idle',
+                    total_time.idle,
+                    self.MAX_VALUES['idle']) / cpu_count,
+
+            self.publish(
+                'cpu_count', psutil.cpu_count())
+
+            return True
+            
+        return None

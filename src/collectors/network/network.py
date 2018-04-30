@@ -8,6 +8,8 @@ network interface usage using /proc/net/dev
 
 """
 
+import diamond.collector
+from diamond.collector import str_to_bool 
 import os
 import re
 
@@ -74,7 +76,7 @@ class NetworkCollector():
             if str_to_bool(self.config['greedy']):
                 greed = '\S*'
 
-            exp = (('^(?:\s*')((?:%s)%s):(?:\s*)' +
+            exp = (('^(?:\s*)((?:%s)%s):(?:\s*)' +
                 '(?P<rx_bytes>\d+)(?:\s*)' + 
                 '(?P<rx_packets>\w+)(?:\s*)'+ 
                 '(?P<rx_errors>\d+)(?:\s*)'+ 
@@ -113,9 +115,19 @@ class NetworkCollector():
                 # Get metric name 
                 metric_name = '.'.join([device, s])
                 # Get metric value
-                metric_value = self.derivative(metric_name, long(value(),
-                    MAX_COUNTER)
+                metric_value = self.derivative(
+                    metric_name, long(v), diamond.collector.MAX_COUNTER)
 
                 # Convert rx_bytes and tx_bytes
                 if s == 'rx_bytes' or s == 'tx_bytes':
                     convertor = binary(value=metric_value, unit='byte')
+
+                    for u in self.config['byte_unit']:
+                        # Public converted metric
+                        self.publish( metric_name.replace('bytes', u),
+                            convertor.get(unit=u), 2)
+                    else:
+                        # Publish Metric Derivative
+                        self.publish(metric_name, metric_value)
+
+        return None
