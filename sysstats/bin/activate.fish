@@ -29,7 +29,7 @@ end
 # unset irrelevant variables
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/home/miltos/code-playground/system/metrics/sysstats-collector/sysstats"
+set -gx VIRTUAL_ENV "/home/student/vibm-workspace/system/sysstats-collector/sysstats"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH

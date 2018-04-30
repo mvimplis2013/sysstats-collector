@@ -1,4 +1,4 @@
-#!/home/miltos/code-playground/system/metrics/sysstats-collector/sysstats/bin/python
+#!/home/student/vibm-workspace/system/sysstats-collector/sysstats/bin/python
 
 # -*- coding: utf-8 -*-
 import re

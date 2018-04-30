@@ -15,7 +15,7 @@ import subprocess
 
 from diamond.metric import Metric
 from diamond.utils.config import load_config
-from error import DiamondException
+from diamond.error import DiamondException
 
 # Detect the architecture of the system and set the counters for 
 # MAX_VALUES appropriately. Otherwise, rolling over counters will
@@ -37,6 +37,28 @@ def get_hostname(config, method=None):
     """
     method = method or config.get('hostname_method', 'smart')
     print()
+
+def str_to_bool(value):
+    """
+    Converts string truthy/falsey strings to a bool
+    Empty strings are false. 
+    
+    Arguments:
+        value {[type]} -- [description]
+    """
+    if isinstance(value, basestring):
+        value = value.strip().lower()
+
+        if value in ['true', 't', 'yes', 'y']:
+            return True
+        elif value in ['false', 'f', 'no', 'n', '']:
+            return False
+        else:
+            raise NotImplementedError('Unknown bool %s' % value)
+
+    return value
+
+        
 
 class Collector():
     """

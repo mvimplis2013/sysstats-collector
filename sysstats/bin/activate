@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/miltos/code-playground/system/metrics/sysstats-collector/sysstats"
+VIRTUAL_ENV="/home/student/vibm-workspace/system/sysstats-collector/sysstats"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
