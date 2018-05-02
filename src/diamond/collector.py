@@ -47,13 +47,13 @@ def get_hostname(config, method=None):
         return get_hostname.cached_results['hostname']
 
     if method == 'shell':
-        if hostname not in config:
+        if 'hostname' not in config:
             raise DiamondException(
                 "hostname must be set to a shell command for"
                 " hostname_method = shell"
             )
         else:
-            proc = subprocess.Open(config['hostname'], shell=True, 
+            proc = subprocess.Popen(config['hostname'], shell=True, 
                 stdout=subprocess.PIPE)
             hostname = proc.communicate()[0].strip()
             if proc.returncode != 0:
@@ -138,7 +138,7 @@ def get_hostname(config, method=None):
     raise NotImplementedError( config['hostname_method' ])
 
 get_hostname.cached_results = {}
- 
+
 def str_to_bool(value):
     """
     Converts string truthy/falsey strings to a bool
@@ -147,7 +147,8 @@ def str_to_bool(value):
     Arguments:
         value {[type]} -- [description]
     """
-    if isinstance(value, basestring):
+    #if isinstance(value, basestring):
+    if isinstance(value, str):
         value = value.strip().lower()
 
         if value in ['true', 't', 'yes', 'y']:
@@ -202,7 +203,7 @@ class Collector():
 
         # Load in the collector's defaults
         if self.get_default_config() is not None:
-            self.cinfig.merge(self.get_default_config())
+            self.config.merge(self.get_default_config())
 
         if configfile is not None:
             self.configfile = os.path.abspath(configfile)
@@ -218,7 +219,7 @@ class Collector():
                     self.config.merge(config['collectors'][self.name])
 
         if override_config is not None:
-            if 'collectors' in ovveride_config:
+            if 'collectors' in override_config:
                 if 'default' in override_config['collectors']:
                     self.config.merge(override_config['collectors']['default'])
 
@@ -227,12 +228,12 @@ class Collector():
 
         self.process_config()
 
-    def process_config():
+    def process_config(self):
         """
         Intended to put any code that should be run after any config reload
         """
         if 'byte_unit' in self.config:
-            if isinstance(self.config['byte_unit'], basestring):
+            if isinstance(self.config['byte_unit'], str):
                 self.config['byte_unit'] = self.config['byte_unit'].split()
 
         if 'enabled' in self.config:
@@ -241,9 +242,9 @@ class Collector():
         if 'measure_collector_time' in self.config:
             self.config['measure_collector_time'] = str_to_bool(self.config['measure_collector_time'])
 
-        # RAaise an error if both whitelist and blacklist are specified
+        # Raise an error if both whitelist and blacklist are specified
         if (self.config.get('metrics_whitelist', None) and self.config.get('metrics_blacklist', None)):
-            raise DaimondException("Both metrics_whitelist and metrics_blacklist specified " + 
+            raise DiamondException("Both metrics_whitelist and metrics_blacklist specified " + 
                 'in file %s' % self.configfile)
 
         if self.config.get('metrics_whitelist', None):
@@ -414,7 +415,7 @@ class Collector():
 
         # Create metric
         try:
-           metric = Metric(path, value, raw_value=raw_value, timestamp=Now, precision=precision, host=self.get_hostname, 
+           metric = Metric(path, value, raw_value=raw_value, timestamp=None, precision=precision, host=self.get_hostname, 
                 metric_type=metric_type, ttl=ttl)
         except DiamondException:
             self.log.error(("Error when creating new Metric: path=%r, value=%r"), path, value)
