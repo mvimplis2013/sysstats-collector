@@ -21,9 +21,10 @@ sys.path.append(
     )       
 )
 
-from diamond.utils.classes import load_collectors
+from diamond.utils.log import DebugFormatter
+
 from diamond.utils.classes import initialize_collector
-from diamond.utils.classes import load_dynamic_class
+from diamond.utils.classes import load_collectors
 from diamond.utils.classes import load_dynamic_class
 from diamond.utils.classes import load_handlers
 from diamond.utils.classes import load_include_path 
@@ -37,11 +38,13 @@ from diamond.utils.classes import load_dynamic_class
 from diamond.utils.classes import load_handlers
 from diamond.utils.classes import load_include_path
 
-from diamond.utils.config import load_config
-from diamond.utils.config import str_to_bool
+from diamond.utils.scheduler import collector_process
+from diamond.utils.scheduler import handler_process
 
-#from diamond.utils.scheduler import collector_process
-#from diamond.utils.scheduler import handler_process
+from diamond.handler.Handler import Handler
+
+from diamond.utils.signals import signal_to_exception
+from diamond.utils.signals import SIGHUPException
 
 class Server():
     """
@@ -51,8 +54,25 @@ class Server():
     def __init__(self, configfile):
         
         # Initialize Logging
-        self.log = logging.getLogger('diamond')
+        df = DebugFormatter()
+        
+        log = logging.getLogger('diamond')
+        # if stdout:
+        # rootLogLevel = logging.getLogger().getEffectiveLevel()
+        # log.setLevel(rootLogLevel)
+        log.setLevel(logging.DEBUG)
+        
+        streamHandler = logging.StreamHandler(sys.stdout)
+        streamHandler.setFormatter(DebugFormatter())
+        
+        log.addHandler(streamHandler)
 
+        # log.setup_logging('./conf/log.conf', True)
+
+        # self.log = logging.getLogger('diamond')
+        self.log = log
+        self.log.info('La Deuxieme')
+        
         # Initialize Members
         self.configfile = configfile
         self.config = None
@@ -66,9 +86,7 @@ class Server():
         if setproctitle:
             oldproctitle = getproctitle()
             setproctitle('%s - SyncManger' % getproctitle())
-        
         self.manager = multiprocessing.Manager()
-
         if setproctitle:
             setproctitle(oldproctitle)
 
@@ -85,10 +103,12 @@ class Server():
 
         collectors = load_collectors(
             self.config['server']['collectors_path'])
-        # metric_queue_size = int(self.config['server'].get('metric_queue_size', 16384))
+        metric_queue_size = int(self.config['server'].get(
+            'metric_queue_size', 16384))
 
-        # self.metric_queue = self.manager.Queue(maxsize=metric_queue_size)
-        # self.log.debug('metric_queue_size: %d', metric_queue_size)
+        self.metric_queue = self.manager.Queue(
+            maxsize=metric_queue_size)
+        self.log.debug('metric_queue_size: %d', metric_queue_size)
 
         ###################################################
         # Handlers
@@ -96,18 +116,19 @@ class Server():
         # TODO: Eventually move each handler to it's own 
         #       process space
         ###################################################
-        """if 'handlers_path' in self.config['server']:
+        if 'handlers_path' in self.config['server']:
             handlers_path = self.config['server']['handlers_path']
+            self.log.debug("Handlers Path ...%s" %handlers_path)
 
             # Make a list 
-            if isinstance(value, basestring):
+            if isinstance(handlers_path, str):
                 handlers_path = handlers_path.split(',')
                 handlers_path = map(str.strip, handlers_path)
                 self.config['server']['hadlers_path'] = handlers_path
 
             load_include_path(handlers_path)
         
-        if 'handlers' not in self.config['server']:
+        """if 'handlers' not in self.config['server']:
             self.log.critical('handlers missing from server section in config')
             sys.exit(1)
 

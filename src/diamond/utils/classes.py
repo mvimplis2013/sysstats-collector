@@ -13,7 +13,13 @@ from diamond.util import load_class_from_name
 from diamond.collector import Collector
 from diamond.handler.Handler import Handler
 
+from diamond.utils.log import DebugFormatter
+
 logger = logging.getLogger('diamond')
+logger.setLevel(logging.DEBUG)
+streamHandler = logging.StreamHandler(sys.stdout)
+streamHandler.setFormatter(DebugFormatter())
+logger.addHandler(streamHandler)
 
 def load_collectors(paths):
     """
@@ -80,8 +86,11 @@ def load_include_path(paths):
     """
 
     for path in paths:
+        logger.debug('Load Include Path: %s' % path)
+    
         # Verify is valid
         if not os.path.isdir(path):
+            logger.error('Not a valid include path: %s' % path)
             continue
         # Add path to system path, to avoid name clashes
         if path not in sys.path:
@@ -234,9 +243,10 @@ def initialize_collector(cls, name=None, configfile=None, handlers=[]):
         collector = cls(name=name, configfile=configfile, handlers=handlers)
     except Exception:
         # Log error
-        logger.error("Failed to initialize Collector: %s.%s", 
+        logger.error("Failed to initialize Collector: %s. %s", 
             cls.__name__, traceback.format_exc() )
 
+    # Return collector
     return collector
 
 

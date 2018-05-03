@@ -11,7 +11,7 @@ def str_to_bool(value):
     Arguments:
         value {[type]} -- [description]
     """
-    if isinstance(value, basestring):
+    if isinstance(value, str):
         value = value.strip().lower()
         if value in ['true', 't', 'yes', 'y']:
             return True
@@ -114,7 +114,7 @@ def load_config(configfile):
     for collector in config['collectors']:
         if 'enabled' in config['collectors'][collector]:
             config['collectors'][collector]['enabled'] = str_to_bool(
-                config['collectors'][collect]['enabled']
+                config['collectors'][collector]['enabled']
             )
     
     ##################################################################

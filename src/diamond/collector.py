@@ -439,10 +439,15 @@ class Collector():
     def publish_gauge(self, name, value, precision=0, instance=None):
         return self.publish(name, value, precision=precision, metric_type='GAUGE', instance=instance)
 
-    def publish_counter(self, name, value, precision=0, max_value=max_value, time_delta=True, interval=None, allow_negative=False, instance=None):
+    def publish_counter(self, name, value, precision=0, 
+                        max_value=0, time_delta=True, interval=None, 
+                        allow_negative=False, instance=None):
         raw_value=value
-        value=self.derivative(name, value, max_value=max_value, time_delta=time_delta, interval=interval, allow_negative=allow_negative, instance=instance)
-        return self.publish(name, value, raw_value=raw_value, precision=precision, metric_type='COUNTER', instance=instance)
+        value=self.derivative(name, value, max_value=max_value, 
+                            time_delta=time_delta, interval=interval, 
+                            allow_negative=allow_negative, instance=instance)
+        return self.publish(name, value, raw_value=raw_value, 
+                        precision=precision, metric_type='COUNTER', instance=instance)
 
     def derivative(self, name, value, new, max_value=0, time_delta=0, interval=None, allow_negative=False, instance=None):
         """

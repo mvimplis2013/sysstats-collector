@@ -9,7 +9,7 @@ class DebugFormatter(logging.Formatter):
     def __init__(self, fmt=None):
         if fmt is None:
             fmt = ( '%(created)s\t' + 
-                    '[%(cprocessName)s:%(process)d: %(levelname)s]\t' + 
+                    '[%(processName)s:%(process)d: %(levelname)s]\t' + 
                     '%(message)s' )
 
         self.fmt_default = fmt
@@ -42,13 +42,13 @@ def setup_logging(configfile, stdout=False):
         if stdout:
             rootLogLevel = logging.getLogger().getEffectiveLevel()
 
-            #log.setLevel(rootLogLevel)
+            log.setLevel(rootLogLevel)
                 
-            #streamHandler = logging.StreamHandler(sys.stdout)
-            #streamHandler.setFormatter(DebugFormatter())
-            #streamHandler.setLevel(rootLogLevel)
+            streamHandler = logging.StreamHandler(sys.stdout)
+            streamHandler.setFormatter(DebugFormatter())
+            streamHandler.setLevel(rootLogLevel)
                 
-            #log.addHandler(streamHandler)
+            log.addHandler(streamHandler)
 
     except Exception as e:
         sys.stderr.write("Error occurs when initialize logging: ")
