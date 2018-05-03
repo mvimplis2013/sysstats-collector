@@ -69,10 +69,26 @@ class ArchiveHandler(Handler):
         """
         Returns th default config for the handler
         """
+        config = super(ArchiveHandler, self).get_default_config()
 
+        config.update({
+            'log_file': '',
+            'when': 'midnight',
+            'days': 7,
+            'rollover_interval': 1,
+            'encoding': None,
+            'propagate': False,
+        })
 
+        return config
 
+    def process(self, metric):
+        """
+        Send a Metric to the Archive
+        
+        Arguments:
+            metric {[type]} -- [description]
+        """
 
-
-
+        self.archive.info(str(metric).strip())
 

@@ -7,16 +7,6 @@ import signal
 import sys
 import time
 
-from diamond.utils.classes import load_collectors
-from diamond.utils.classes import initialize_collector
-from diamond.utils.classes import load_dynamic_class
-from diamond.utils.classes import load_dynamic_class
-from diamond.utils.classes import load_handlers
-from diamond.utils.classes import load_include_path 
-
-from diamond.utils.config import str_to_bool
-from diamond.utils.config import load_config
-
 try:
     from setproctitle import getproctitle, setproctitle
 except ImportError:
@@ -30,6 +20,16 @@ sys.path.append(
         )
     )       
 )
+
+from diamond.utils.classes import load_collectors
+from diamond.utils.classes import initialize_collector
+from diamond.utils.classes import load_dynamic_class
+from diamond.utils.classes import load_dynamic_class
+from diamond.utils.classes import load_handlers
+from diamond.utils.classes import load_include_path 
+
+from diamond.utils.config import str_to_bool
+from diamond.utils.config import load_config
 
 from diamond.utils.classes import initialize_collector
 from diamond.utils.classes import load_collectors

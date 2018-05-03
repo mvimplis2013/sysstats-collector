@@ -4,7 +4,7 @@ import time
 import re
 import logging
 
-from diamond.error import DiamondException
+from error import DiamondException
 
 class Metric():
     # This saves a significant amount of memory per object.
@@ -16,7 +16,7 @@ class Metric():
         'host', 'metric_type', 'ttl'
     ]
 
-    def __init__(self, path, value, raw_data=None, timestamp=None, 
+    def __init__(self, path, value, raw_value=None, timestamp=None, 
         precision=0, host=None, metric_type='COUNTER', ttl=None):
         """
         Create new instance of the Metric class
@@ -72,7 +72,7 @@ class Metric():
         """
         Return the Metric as a string
         """
-        if not isinstance(self.precision, (int, long)):
+        if not isinstance(self.precision, (int)):
             log = logging.getLogger('diamond')
             log.warn('Metric %s does not have a valid precision', self.path)
             self.precision = 0
@@ -108,7 +108,7 @@ class Metric():
             groups = match.groupdict()
             # TODO: get precision from value string
             return Metric(
-                groups[name], groups['value'], float(groups['timestamp'])
+                groups['name'], groups['value'], float(groups['timestamp'])
             )
         except:
             raise DiamondException(
