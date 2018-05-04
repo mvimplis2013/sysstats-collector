@@ -69,7 +69,7 @@ def get_hostname(config, method=None):
             get_hostname.cached_results[method] = hostname
         return hostname
 
-    if method == 'fqdn-short':
+    if method == 'fqdn_short':
         hostname = socket.getfqdn().split('.')[0]
         get_hostname.cached_results[method] = hostname
         if hostname == '':
