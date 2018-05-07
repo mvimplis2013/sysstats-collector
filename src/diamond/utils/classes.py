@@ -45,7 +45,7 @@ def load_handlers(config, handler_names):
 
     handlers = []
 
-    if isinstance(handler_names, basestring):
+    if isinstance(handler_names, str):
         handler_names = [handler_names]
 
     for handler in handler_names:
@@ -65,13 +65,16 @@ def load_handlers(config, handler_names):
 
 def load_dynamic_class(fqn, subclass):
     """
-    Dynamically load fqn class and verify it's a subclass 
+    Dynamically load fqn class and verify it's a subclass of `subclass`
     """
-    if not isinstance(fqn, basestring):
+    if not isinstance(fqn, str):
         return fqn
 
-    cls = load_class+from_name(fqn)
-
+    cls = load_class_from_name(fqn)
+    print( "class:", cls, "... subclass:", subclass)
+    print( "isSubclass:", issubclass(cls, subclass))
+    print( cls.__bases__ )
+    
     if cls == subclass or not issubclass(cls, subclass):
         raise TypeError("%s is not a valid %s" %(fqn, subclass.__name__))
 
@@ -86,8 +89,6 @@ def load_include_path(paths):
     """
 
     for path in paths:
-        logger.debug('Load Include Path: %s' % path)
-    
         # Verify is valid
         if not os.path.isdir(path):
             logger.error('Not a valid include path: %s' % path)
@@ -99,8 +100,11 @@ def load_include_path(paths):
         for f in os.listdir(path):
             # Are we a direcory ?
             fpath = os.path.join(path, f)
+        
             if os.path.isdir(fpath):
                 load_include_path([fpath])
+
+    logger.debug("Sys Path is %s" % sys.path)
 
 def load_collectors_from_paths(paths):
     """
@@ -112,15 +116,19 @@ def load_collectors_from_paths(paths):
     if paths is None:
         return
 
+    logger.debug("Load Collectors from Path(s): %s" % paths)
+
     if isinstance(paths, str):
         paths = paths.split(',')
         paths = map(str.strip, paths)
 
+    paths = list(paths)
+    
     load_include_path(paths)
     
     for path in paths:
         # Get a list of files in the directory, if the directory exists
-        if not os.pasth.exists(path):
+        if not os.path.exists(path):
             raise OSError("Directory does not exist: %s" % path)
 
         if path.endswith('tests') or path.endswith('fixtures'):
@@ -130,6 +138,7 @@ def load_collectors_from_paths(paths):
         for f in os.listdir(path):
             # Are we a directory? If so process down
             fpath = os.path.join(path, f)
+            
             if os.path.isdir(fpath):
                 subcollectors = load_collectors_from_paths([fpath])
                 for key in subcollectors:
@@ -137,10 +146,10 @@ def load_collectors_from_paths(paths):
 
             # Ignore anything that isn' a .py file
             elif (os.path.isfile(fpath) and len(f) > 3 and 
-                f[-3] == '.py' and f[0:4] != 'test' 
-                and f[0] != '.'):
-                
+                    f[-3:] == '.py' and f[0:4] != 'test' and f[0] != '.'
+                    ):                
                 modname = f[:-3]
+                print(",,!!", modname)
                 fp, pathname, description = imp.find_module(modname, [path])
 
                 try:
@@ -159,6 +168,7 @@ def load_collectors_from_paths(paths):
                         modname, traceback.format_exc())
                 else:
                     for name, cls in get_collectors_from_module(mod):
+                        logger.debug("Found Collector: %s. %s", name, cls)
                         collectors[name] = cls
                 finally:
                     if fp:

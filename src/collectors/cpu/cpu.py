@@ -248,8 +248,8 @@ class CPUCollector(diamond.collector.Collector):
 
             self.publish(
                 metric_name + '.system',
-                self.derivative(metric_name + '.system',
-                    self.derivative(metric_name + ".system",
+                self.derivative(
+                    metric_name + '.system',
                     total_time.system,
                     self.MAX_VALUES['system']) / cpu_count,
                 precision=2)
@@ -259,6 +259,7 @@ class CPUCollector(diamond.collector.Collector):
                 self.derivative(metric_name + '.idle',
                     total_time.idle,
                     self.MAX_VALUES['idle']) / cpu_count,
+                precision=2)
 
             self.publish(
                 'cpu_count', psutil.cpu_count())

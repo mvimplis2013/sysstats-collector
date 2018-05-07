@@ -11,6 +11,7 @@ Cache as well.
 or "psutil"
 
 """
+import diamond.collector
 
 import os 
 import logging
@@ -39,7 +40,7 @@ _KEY_MAPPING = [
     'Commited_AS',
 ]
 
-class MemoryCollector():
+class MemoryCollector(diamond.collector.Collector):
     PROC = '/proc/meminfo'
 
     def __init__(self, config=None, handlers=[], name=None, configfile=None):

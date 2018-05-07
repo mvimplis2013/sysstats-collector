@@ -71,7 +71,6 @@ class Server():
 
         # self.log = logging.getLogger('diamond')
         self.log = log
-        self.log.info('La Deuxieme')
         
         # Initialize Members
         self.configfile = configfile
@@ -103,6 +102,9 @@ class Server():
 
         collectors = load_collectors(
             self.config['server']['collectors_path'])
+
+        print("Collectors Found ...", collectors)
+
         metric_queue_size = int(self.config['server'].get(
             'metric_queue_size', 16384))
 
@@ -123,24 +125,26 @@ class Server():
             # Make a list 
             if isinstance(handlers_path, str):
                 handlers_path = handlers_path.split(',')
-                handlers_path = map(str.strip, handlers_path)
+                #handlers_path = map(str.strip, handlers_path)
+                handlers_path = list( map(str.strip, handlers_path) )
                 self.config['server']['hadlers_path'] = handlers_path
 
             load_include_path(handlers_path)
         
-        """if 'handlers' not in self.config['server']:
+        if 'handlers' not in self.config['server']:
             self.log.critical('handlers missing from server section in config')
             sys.exit(1)
 
         handlers = self.config['server'].get('handlers')
-        if isinstance(handlers, basestring):
+        print("&&&&&&&&&&&&&&&", handlers)
+        if isinstance(handlers, str):
             handlers = [handlers]
 
         # Prevent the Queue handler from being a normal handler
         if 'diamond.handler.queue.QueueHandler' in handlers:
             handlers.remove('diamond.handlers.queue.QueueHandler')
 
-        self.handlers = load_handlers(self.conig, handlers)
+        self.handlers = load_handlers(self.config, handlers)
 
         QueueHandler = load_dynamic_class(
             'diamond.handler.queue.QueueHandler',
@@ -171,10 +175,12 @@ class Server():
         while True:
             try:
                 active_children = multiprocessing.active_children()
-                running_process = []
+                running_processes = []
                 for process in active_children:
                     running_processes.append(process.name)
                 running_processes = set(running_processes)
+
+                print("Running Processes:", running_processes)
 
                 ############################################
                 # Collectors 
@@ -260,5 +266,5 @@ class Server():
 
                 # restore SIGHUP handler
                 signal.signal(signal.SIGHUP, original_sighup_handler)
-                """
+                
 

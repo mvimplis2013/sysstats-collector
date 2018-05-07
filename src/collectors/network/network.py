@@ -18,7 +18,7 @@ try:
 except ImportError:
     psutil = None
 
-class NetworkCollector():
+class NetworkCollector(diamond.collector.Collector):
     PROC = '/proc/net/dev'
 
     def get_default_config(self):
@@ -39,25 +39,6 @@ class NetworkCollector():
 
         # Initialize results
         results = {}
-
-    def str_to_bool(value):
-        """
-        Converts string truthy/falsey strings to a bool
-        Empty strings are false
-        
-        Arguments:
-            value {[type]} -- [description]
-        """
-        if isinstance(value, basestring):
-            value = value.strip().lower()
-            if value in ['true', 't', 'yes', 'y']:
-                return True
-            elif value in ['false', 'f', 'no', 'n', '']:
-                return False
-            else:
-                raise NotImplementedError("Unknown bool is %s" % value )
-
-            return value
 
     def collect(self):
         """
@@ -116,11 +97,11 @@ class NetworkCollector():
                 metric_name = '.'.join([device, s])
                 # Get metric value
                 metric_value = self.derivative(
-                    metric_name, long(v), diamond.collector.MAX_COUNTER)
+                    metric_name, int(v), diamond.collector.MAX_COUNTER)
 
                 # Convert rx_bytes and tx_bytes
                 if s == 'rx_bytes' or s == 'tx_bytes':
-                    convertor = binary(value=metric_value, unit='byte')
+                    convertor = diamond.convertor.binary(value=metric_value, unit='byte')
 
                     for u in self.config['byte_unit']:
                         # Public converted metric

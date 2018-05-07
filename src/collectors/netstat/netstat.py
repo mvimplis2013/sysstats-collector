@@ -8,7 +8,9 @@ of connections in each state.
 
 """
 
-class NetstatCollector():
+import diamond.collector
+
+class NetstatCollector(diamond.collector.Collector):
     PROC_TCP = "/proc/net/tcp"
 
     STATE = {

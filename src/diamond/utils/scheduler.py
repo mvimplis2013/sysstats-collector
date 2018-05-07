@@ -45,7 +45,7 @@ def collector_process(collector, metric_queue, log):
 
     # Validate the interval 
     if interval <= 0:
-        lof.critical('interval of %s secs is not valid!', interval)
+        log.critical('interval of %s secs is not valid!', interval)
         sys.exit(1)
 
     # Start the next execution at the next window plus some stagger
@@ -61,7 +61,7 @@ def collector_process(collector, metric_queue, log):
     # Setup stderr/ stdout as /dev/null so random print statements
     # in third party libraries do not fail and prevent collectors
     # from running. See: Diamond/issues/722
-    sys.stdout = opne(os.devnull, 'w')
+    sys.stdout = open(os.devnull, 'w')
     sys.stderr = open(os.devnull, 'w')
 
     while (True):

@@ -179,6 +179,49 @@ class rmqHandler(Handler):
                 time.sleep(self.reconnect_interval)
 
         def _unbind(self, rmq_server=None):
+            """ Close AMQP connection and unset channel """
+            try:
+                self.connections[rmq_server].close()
+            except AttributeError:
+                pass
+
+            self.connections[rmq_server] = None
+            self.channels[rmq_server] = None
+
+        def __del__(self):
+            """
+            Destroy instance of the rmqHandler class
+            """
+            if hasattr(self, 'connections'):
+                for rmq_server in self.connections.keys():
+                    self._unbind(rmq_server)
+
+        def process(self, metric):
+            """
+            Process a metric and send it to RMQ pub socket
+            
+            Arguments:
+                metric {[type]} -- [description]
+            """
+            for rmq_server in self.connections.keys():
+                try:
+                    if ((self.connections[rmq_server] is None or 
+                            self.connections[rmq_server].is_open is False)):
+                        self._bind(rmq_server)
+
+                    channel = self.channels[rmq_server]
+                    channel.basic_publish(exchange=self.rmq_exchange, routing_key='', body="%s" % metric)
+                
+                except Exception as exception:
+                    self.log.error("Failed publishing to %s, attempting reconnect", rmq_server)
+                    self.log.debug("Caught exception: %s", exception)
+                    self._unbind(rmq_server)
+                    self._bind(rmq_server)
+
+
+
+
+            
             
 
 
