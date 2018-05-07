@@ -88,6 +88,7 @@ class CPUCollector(diamond.collector.Collector):
 
             return post_check
 
+        print("Hello Miltos !!!!")
         if os.access(self.PROC, os.R_OK):
             
             # If SIMPLE ... only return aggregate CPU% metric
@@ -146,23 +147,32 @@ class CPUCollector(diamond.collector.Collector):
 
             metrics = {'cpu_count', ncpus}
             
+            print("RESULTS:", results)
             for cpu in results.keys():
+                print("CPU --<> ", cpu)
                 stats = results[cpu]
                 for s in stats.keys():
                     # Get Metric Name
                     metric_name = '.'.join([cpu,s])
+
                     
                     #Get actual data
                     if ((str_to_bool(self.config['normalize']) and
                         cpu == 'total' and ncpus > 0)):
                         metrics[metric_name] = self.derivative(
-                            metric_name, long(stats[s]),
+                            metric_name, int(stats[s]),
                             self.MAX_VALUES[s] / ncpus)
                     else:
-                        metrics[metric_name] = self.derivative(
-                            metric_name, long(stats[s]),
+                        print( "**********************", self.derivative(
+                            metric_name, int(stats[s]),
                             self.MAX_VALUES[s]
-                        )
+                        ) )
+
+                        """metrics[metric_name] = self.derivative(
+                            metric_name, int(stats[s]),
+                            self.MAX_VALUES[s]
+                        )"""
+                        metrics[metric_name] = str(0.1)
 
             # Check for a bug in xen where the idle time is doubled
             # for guest. 

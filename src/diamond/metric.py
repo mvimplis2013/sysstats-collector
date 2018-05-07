@@ -31,7 +31,8 @@ class Metric():
         # Validate the path, value, and metric_type submitted
         if (None in [path, value] or 
             metric_type not in ('COUNTER', 'GAUGE')):
-            raise DiamondException(("Invalid parameter when creating new "
+            raise DiamondException((
+                "Invalid parameter when creating new "
                 "Metric with path: %r value: %r "
                 "metric_type: %r") % (path, value, metric_type))
 
@@ -85,9 +86,9 @@ class Metric():
 
     def __getstate__(self):
         return dict(
-            (slot, getattr(self.slot))
+            (slot, getattr(self, slot))
             for slot in self.__slots__
-            if hasattr(self.slot) 
+            if hasattr(self, slot) 
         )
 
     def __setstate__(self, state):

@@ -44,7 +44,7 @@ def get_hostname(config, method=None):
         return config['hostname']
 
     if method in get_hostname.cached_results:
-        return get_hostname.cached_results['hostname']
+        return get_hostname.cached_results[method]
 
     if method == 'shell':
         if 'hostname' not in config:
@@ -349,6 +349,11 @@ class Collector():
                 return '.'.join([prefix, instance, path, name])
 
         if 'path_prefix' in self.config:
+            prefix = self.config['path_prefix']
+        else:
+            prefix = 'systems'
+
+        if 'path_suffix' in self.config:
             suffix = self.config['path_suffix']
         else:
             suffix = None
@@ -436,12 +441,15 @@ class Collector():
          for handler in self.handlers:
              handler._process(metric)
 
-    def publish_gauge(self, name, value, precision=0, instance=None):
-        return self.publish(name, value, precision=precision, metric_type='GAUGE', instance=instance)
+    def publish_gauge(
+        self, name, value, precision=0, instance=None):
+        return self.publish(
+            name, value, precision=precision, 
+            metric_type='GAUGE', instance=instance)
 
-    def publish_counter(self, name, value, precision=0, 
-                        max_value=0, time_delta=True, interval=None, 
-                        allow_negative=False, instance=None):
+    def publish_counter(
+        self, name, value, precision=0, max_value=0, time_delta=True, 
+        interval=None, allow_negative=False, instance=None):
         raw_value=value
         value=self.derivative(name, value, max_value=max_value, 
                             time_delta=time_delta, interval=interval, 

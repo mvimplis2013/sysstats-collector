@@ -7,24 +7,27 @@ Cache as well.
 
 #### Dependencies
 
-* /proc/meminfo
-or "psutil"
+* /proc/meminfo 
+* or "psutil"
 
 """
 import diamond.collector
+import diamond.convertor
 
 import os 
-import logging
+
+from decimal import Decimal
 
 try:
     import psutil
+    psutil
 except ImportError:
     psutil = None
 
 _KEY_MAPPING = [
     'MemTotal',
     'MemFree',
-    'MemAvailable',
+    'MemAvailable', # needs kernel 3.14
     'Buffers',
     'Cached',
     'Active',
@@ -43,25 +46,31 @@ _KEY_MAPPING = [
 class MemoryCollector(diamond.collector.Collector):
     PROC = '/proc/meminfo'
 
-    def __init__(self, config=None, handlers=[], name=None, configfile=None):
-        """
-        Create a new instance of the Collector class 
-        
-        Keyword Arguments:
-            config {[type]} -- [description] (default: {None})
-            handlers {list} -- [description] (default: {[]})
-            name {[type]} -- [description] (default: {None})
-            configfile {[type]} -- [description] (default: {None})
-        """
-        
-        # Initialize Logger
-        self.log = logging.getLogger('zephyr')
+    def get_default_config_help(self):
+        config = super(MemoryCollector, self).get_default_config_help()
 
+        config.update({
+            'detailed': 'Set to True to Collect all the nodes',
+        })
+
+        return config
 
     def get_default_config(self):
         """
         Returns the default collector settings
         """
+        config = super(MemoryCollector, self).get_default_config()
+
+        config.update({
+            'path': 'memory',
+            'method': 'Threaded',
+            'force_psutil': 'False',
+            # Collect all the nodes or just a few standard ones ?
+            # Uncomment to enable
+            # 'detailed': 'True',
+        })
+
+        return config
 
     def collect(self):
         """
@@ -96,7 +105,57 @@ class MemoryCollector(diamond.collector.Collector):
                 memory_used = memory_total - memory_available
                 memory_used_percent = memory_used / memory_total * 100.0
 
-                print('Memory Used Percent: ', memory_used_percent)
+                self.publish('MemUsedPercentage',
+                    round(memory_used, 2),
+                    metric_type='GAUGE')
+
                 return True
 
+        else:
+            if not psutil:
+                self.log.error('Unable to import psutil')
+                self.log.error('No Memory metrics retrieved')
+
+                return None
+
+            # psutil.phmem_usage() and psutil.virtmem_usage() are deprecated
+            if hasattr(psutil, "phymem_usage"):
+                phymem_usage = psutil.phymem_usage()
+                virtmem_usage = psutil.virtmem_usage()
+            else:
+                phymem_usage = psutil.virtual_memory()
+                virtmem_usage = psutil.swap_memory()
+
+            units = 'B'
+
+            for unit in self.config['byte_unit']:
+                memory_total = value = diamond.convertor.binary.convert(
+                    value=phymem_usage.available, 
+                    oldUnit=units, newUnit=unit)
                 
+                self.publish("MemAvailable", value, metric_type='GAUGE')
+
+                memory_used = memory_total - memory_available
+
+                memory_used_percent = Decimal(str(100.0 * 
+                    memory_used / memory_total))
+
+                self.publish("MemUsedPercentage", 
+                    round(memory_used_percent, 2), metric_type='GAUGE')
+
+                value = diamond.convertor.binary.convert(
+                    value=phymem_usage.free, oldUnit=units, newUnit=unit)           
+                self.publish('MemFree', value, metric_type='GAUGE')
+
+                value = diamond.convertor.binary.convert(
+                    value=virtmem_usage.total, oldUnit=units, newUnit=unit)
+                self.publish('SwapTotal', value, metric_type='GAUGE')
+
+                value = diamond.convertor.binary.convert(
+                    value=virtmem_usage.free, oldUnit=units, newUnit=unit)
+                self.publish('SwapFree', value, metric_type='GAUGE')
+
+                # TODO: We only support one unit node here. Fix it!
+                break
+
+            return True

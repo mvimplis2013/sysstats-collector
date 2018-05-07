@@ -29,8 +29,10 @@ class QueueHandler(Handler):
             metric {[type]} -- [description]
         """
         try:
-            self.queue.put(metric, block=False)
-        except Queue.Full:
+            print("Metric:", metric)
+            # self.queue.put(metric, block=False)
+            self.queue.put((1,1), False)
+        except queue.Full:
             self.__throttle_error("Queue Full, check handlers for delays")
 
     def flush(self):
@@ -42,7 +44,7 @@ class QueueHandler(Handler):
         """
         try:
             self.queue.put(None, block=False)
-        except Queue.Full:
+        except queue.Full:
             self._throttle_error("Queue Full, check handlers for delays")
     
 
