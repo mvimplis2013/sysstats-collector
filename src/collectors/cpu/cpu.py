@@ -168,11 +168,11 @@ class CPUCollector(diamond.collector.Collector):
                             self.MAX_VALUES[s]
                         ) )
 
-                        """metrics[metric_name] = self.derivative(
+                        metrics[metric_name] = str(self.derivative(
                             metric_name, int(stats[s]),
                             self.MAX_VALUES[s]
-                        )"""
-                        metrics[metric_name] = str(0.1)
+                        ))
+                        # metrics[metric_name] = str(0.1)
 
             # Check for a bug in xen where the idle time is doubled
             # for guest. 

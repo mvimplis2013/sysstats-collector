@@ -30,8 +30,8 @@ class QueueHandler(Handler):
         """
         try:
             print("Metric:", metric)
-            # self.queue.put(metric, block=False)
-            self.queue.put((1,1), False)
+            self.queue.put(metric, block=False)
+            # self.queue.put((1,1), False)
         except queue.Full:
             self.__throttle_error("Queue Full, check handlers for delays")
 
