@@ -24,6 +24,7 @@ class ArchiveHandler(Handler):
         Arguments:
             conig {[type]} -- [description]
         """
+        print("++++++++++++++++++++++++++++++++++++++++++++++++++")
         # Initialize Handler
         Handler.__init__(self, config)
 
@@ -46,6 +47,8 @@ class ArchiveHandler(Handler):
         handler.setFormatter(formatter)
         handler.setLevel(logging.DEBUG)
         self.archive.addHandler(handler)
+
+        self.archive.debug( "Log Messages from System and Iot Platform" )
 
     def get_default_config_help(self):
         """

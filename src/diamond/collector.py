@@ -419,13 +419,15 @@ class Collector():
         ttl = float( self.config['interval']) * float( self.config['ttl_multiplier'])
 
         # Create metric
+        self.log.debug(
+            "~~~~~~~~~~~~~~~~~~~~~~~ Ready to Publish Metric ~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         try:
             metric = Metric(path, value, raw_value=raw_value, timestamp=None, precision=precision, host=self.get_hostname, 
                 metric_type=metric_type, ttl=ttl)
         except DiamondException:
             self.log.error(("Error when creating new Metric: path=%r, value=%r"), path, value)
             raise
-
+        self.log.debug("Metric to Publish: %s" % metric)
 
         # Pubish Metric
         self.publish_metric(metric)
@@ -439,7 +441,11 @@ class Collector():
          """
         # Process Metric
         for handler in self.handlers:
-            handler._process(metric)
+            self.log.debug("Handler for Metric is: %s" % handler)
+            try:
+                handler._process(metric)
+            except Exception as e:
+                self.log.error( "Queue Process Error: %s" % e )
 
     def publish_gauge(
         self, name, value, precision=0, instance=None):

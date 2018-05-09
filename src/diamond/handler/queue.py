@@ -21,6 +21,9 @@ class QueueHandler(Handler):
         """
         self._flush()
 
+    def process(self, metric):
+        return self._process(metric)
+
     def _process(self, metric):
         """
         We skip any locking code due to the fact that this now a single process per collector
@@ -29,9 +32,13 @@ class QueueHandler(Handler):
             metric {[type]} -- [description]
         """
         try:
-            self.log.error("Metric:", metric)
-            self.queue.put(metric, block=False)
-            # self.queue.put((1,1), False)
+            self.log.debug("Metric:%s", metric)
+            
+            #self.queue.put(metric, block=False)
+            self.queue.put(str(metric), False)
+            #self.queue.put((1,1), False)
+
+            self.log.debug("Queue Add Item:%s" % self.queue)
         except queue.Full:
             self.__throttle_error("Queue Full, check handlers for delays")
 

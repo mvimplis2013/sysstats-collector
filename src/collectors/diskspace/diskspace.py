@@ -75,6 +75,8 @@ class DiskSpaceCollector(diamond.collector.Collector):
         return config
 
     def process_config(self):
+        self.log.debug("&&&&& Inside DiskSpace Collector &&&&&")
+
         super(DiskSpaceCollector, self).process_config()
         # Precompile things
         self.exclude_filters = self.config['exclude_filters']
@@ -85,6 +87,8 @@ class DiskSpaceCollector(diamond.collector.Collector):
             self.exclude_reg = re.compile('!.*')
         else:
             self.exclude_reg = re.compile('|'.join(self.exclude_filters))
+
+        self.log.debug("Exclude-Filters:%s" % self.exclude_filters)
 
         self.filesystems = []
         if isinstance(self.config['filesystems'], str):
@@ -133,9 +137,9 @@ class DiskSpaceCollector(diamond.collector.Collector):
                 # Skip the filesystem if it is not in the list of valid
                 # filesystems
                 if fs_type not in self.filesystems:
-                    self.log.debug("Ignoring %s since it is of type %s " +
-                                   " which is not in the list of filesystems.",
-                                   mount_point, fs_type)
+                    #self.log.debug("Ignoring %s since it is of type %s " +
+                    #               " which is not in the list of filesystems.",
+                    #               mount_point, fs_type)
                     continue
 
                 # Process the filters
@@ -155,6 +159,8 @@ class DiskSpaceCollector(diamond.collector.Collector):
 
                     if stat.st_dev in result:
                         continue
+
+                    self.log.debug("Ready for DiskSpace" )
 
                     result[stat.st_dev] = {
                         'device': os.path.realpath(device),
@@ -178,6 +184,7 @@ class DiskSpaceCollector(diamond.collector.Collector):
                 }
             pass
 
+        self.log.debug("!!! Have a result !!!!")
         return result
 
     def collect(self):

@@ -37,13 +37,13 @@ def load_modules_from_path(path):
             __import__(modname, globals(), locals(), ['*'])\
 
 def load_class_from_name(fqcn):
-    print("CLAPOT")
+    # print("CLAPOT")
     
     # Break apart fqcn to get module and classname
     paths = fqcn.split('.')
     modulename = '.'.join(paths[:-1])
     classname = paths[-1]
-    print("Classname:", classname)
+    # print("Classname:", classname)
     # Import the module
     __import__(modulename, globals(), locals(), ['*'])
     # Get the class 

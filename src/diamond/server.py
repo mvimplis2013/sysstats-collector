@@ -103,7 +103,7 @@ class Server():
         collectors = load_collectors(
             self.config['server']['collectors_path'])
 
-        print("Collectors Found ...", collectors)
+        # print("Collectors Found ...", collectors)
 
         metric_queue_size = int(self.config['server'].get(
             'metric_queue_size', 16384))
@@ -145,6 +145,7 @@ class Server():
             handlers.remove('diamond.handlers.queue.QueueHandler')
 
         self.handlers = load_handlers(self.config, handlers)
+        print("Handlers:", self.handlers)
 
         QueueHandler = load_dynamic_class(
             'diamond.handler.queue.QueueHandler',
@@ -244,7 +245,7 @@ class Server():
 
                 if not handlers_process.is_alive():
                     self.log.error('Handling process exited')
-                    if str_to_bool(self.config('server').get(
+                    if str_to_bool(self.config['server'].get(
                         'abort_on_handlers_process_exit', 'False')):
                         raise Exception('Handlers process exited')
 

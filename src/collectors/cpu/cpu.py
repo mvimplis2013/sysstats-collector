@@ -88,7 +88,6 @@ class CPUCollector(diamond.collector.Collector):
 
             return post_check
 
-        print("Hello Miltos !!!!")
         if os.access(self.PROC, os.R_OK):
             
             # If SIMPLE ... only return aggregate CPU% metric

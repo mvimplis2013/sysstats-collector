@@ -49,11 +49,36 @@ def load_handlers(config, handler_names):
         handler_names = [handler_names]
 
     for handler in handler_names:
-        logger.debug("Loading Handler %s", handler)
+        logger.debug("Loading Handler %s" % handler)
 
         try:
             # Load Handler Class
             cls = load_dynamic_class(handler, Handler)
+            cls_name = cls.__name__
+
+            # Initialize Handler config
+            handler_config = configobj.ConfigObj()
+            # Merge default Handler config section
+            handler_config.merge(config['handlers']['default'])
+            # Check if Handler config exists
+            if cls_name in config['handlers']:
+                # Merge Handler config section
+                handler_config.merge(config['handlers'][cls_name])
+
+            # Check the config file in config directory
+            if 'handlers_config_path' in config['server']:
+                configfile = os.path.join(
+                    config['server']['handlers_config_path'],
+                    cls_name) + '.conf'
+
+                if os.path.exists(configfile):
+                    # Merge Collector config file
+                    handler_config.merge(configobj.ConfigObj(configfile))
+
+            # Initialize Handler class
+            h = cls(handler_config)
+            handlers.append(h)
+
         except (ImportError, SyntaxError):
             # Log Error
             logger.warning("Failed to load hadler %s. %s", 
@@ -71,9 +96,9 @@ def load_dynamic_class(fqn, subclass):
         return fqn
 
     cls = load_class_from_name(fqn)
-    print( "class:", cls, "... subclass:", subclass)
-    print( "isSubclass:", issubclass(cls, subclass))
-    print( cls.__bases__ )
+    # print( "class:", cls, "... subclass:", subclass)
+    # print( "isSubclass:", issubclass(cls, subclass))
+    # print( cls.__bases__ )
     
     if cls == subclass or not issubclass(cls, subclass):
         raise TypeError("%s is not a valid %s" %(fqn, subclass.__name__))
@@ -104,7 +129,7 @@ def load_include_path(paths):
             if os.path.isdir(fpath):
                 load_include_path([fpath])
 
-    logger.debug("Sys Path is %s" % sys.path)
+    # logger.debug("Sys Path is %s" % sys.path)
 
 def load_collectors_from_paths(paths):
     """
@@ -116,7 +141,7 @@ def load_collectors_from_paths(paths):
     if paths is None:
         return
 
-    logger.debug("Load Collectors from Path(s): %s" % paths)
+    # logger.debug("Load Collectors from Path(s): %s" % paths)
 
     if isinstance(paths, str):
         paths = paths.split(',')
@@ -149,7 +174,7 @@ def load_collectors_from_paths(paths):
                     f[-3:] == '.py' and f[0:4] != 'test' and f[0] != '.'
                     ):                
                 modname = f[:-3]
-                print(",,!!", modname)
+                # print(",,!!", modname)
                 fp, pathname, description = imp.find_module(modname, [path])
 
                 try:

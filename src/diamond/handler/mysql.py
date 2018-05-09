@@ -112,8 +112,16 @@ class MySQLHandler(Handler):
         """
         Connect to the MySQL server
         """
-        self._close()
-        self.conn = pymysql.connect(host=self.hostname, port=self.port, user=self.user, password=self.password, db=self.database)
+        try:
+            self._close()
+            self.conn = pymysql.connect(
+                host=self.hostname, 
+                port=self.port, 
+                user=self.username, 
+                password=self.password, 
+                db=self.database)
+        except Exception as e:
+            self.log.error( e )
 
     def _close(self):
         """

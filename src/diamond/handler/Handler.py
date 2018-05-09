@@ -85,8 +85,9 @@ class Handler(object):
             except Exception:
                 self.log.error(traceback.format_exc())
         finally:
-            if self.lock.locked():
-                self.lock.release()
+            # if self.lock.locked():
+            # if self.lock.LockType:
+            self.lock.release()
 
     def process(self, metric):
         """
