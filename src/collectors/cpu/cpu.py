@@ -145,7 +145,7 @@ class CPUCollector(diamond.collector.Collector):
             # Close file
             file.close()
 
-            metrics = {'cpu_count', ncpus}
+            metrics = {'cpu_count': ncpus}
             
             print("RESULTS:", results)
             for cpu in results.keys():
@@ -163,20 +163,13 @@ class CPUCollector(diamond.collector.Collector):
                             metric_name, int(stats[s]),
                             self.MAX_VALUES[s] / ncpus)
                     else:
-                        print( "**********************", self.derivative(
+                        metrics[metric_name] =  self.derivative(
                             metric_name, int(stats[s]),
-                            self.MAX_VALUES[s]
-                        ) )
-
-                        metrics[metric_name] = str(self.derivative(
-                            metric_name, int(stats[s]),
-                            self.MAX_VALUES[s]
-                        ))
-                        # metrics[metric_name] = str(0.1)
-
+                            self.MAX_VALUES[s])
+                        
             # Check for a bug in xen where the idle time is doubled
             # for guest. 
-            if os.config['xenfix'] is None or self.config['xenfix'] is True:
+            if self.config['xenfix'] is None or self.config['xenfix'] is True:
                 if os.path.isdir('/proc/xen'):
                     total = 0
                     for metric_name in metrics.keys():
@@ -219,7 +212,7 @@ class CPUCollector(diamond.collector.Collector):
                 if hasattr(cpu_time[i], 'nice'):
                     self.publish(
                         metric_name + '.nice',
-                        sel.derivative(
+                        self.derivative(
                             metric_name + '.nice',
                             cpu_time[i].nice,
                             self.MAX_VALUES['nice']

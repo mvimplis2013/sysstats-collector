@@ -19,13 +19,13 @@ from diamond.collector import str_to_bool
 class LoadAverageCollector(diamond.collector.Collector):
 
     PROC_LOADAVG = '/proc/loadavg'
-    PROC_LOADAVG_RE = re.compile(r'([\d.]+) ([\d.]+) ([\d.]+) (\d+)/(\d+)')
+    PROC_LOADAVG_RE = re.compile(r'([\d.]+) ([\d.]+) ([\d.]+) (\d.+)/(\d+)')
 
     def get_default_config_help(self):
         config_help = super(LoadAverageCollector,
                             self).get_default_config_help()
         config_help.update({
-            'simple':   'Only collect the 1 minute load average'
+            'simple': 'Only collect the 1 minute load average'
         })
         return config_help
 

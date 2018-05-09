@@ -29,7 +29,7 @@ class QueueHandler(Handler):
             metric {[type]} -- [description]
         """
         try:
-            print("Metric:", metric)
+            self.log.error("Metric:", metric)
             self.queue.put(metric, block=False)
             # self.queue.put((1,1), False)
         except queue.Full:

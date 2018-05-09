@@ -47,13 +47,13 @@ class MemoryCollector(diamond.collector.Collector):
     PROC = '/proc/meminfo'
 
     def get_default_config_help(self):
-        config = super(MemoryCollector, self).get_default_config_help()
+        config_help = super(MemoryCollector, self).get_default_config_help()
 
-        config.update({
+        config_help.update({
             'detailed': 'Set to True to Collect all the nodes',
         })
 
-        return config
+        return config_help
 
     def get_default_config(self):
         """
@@ -76,7 +76,8 @@ class MemoryCollector(diamond.collector.Collector):
         """
         Collect memory stats
         """
-        if os.access(self.PROC, os.R_OK):
+        if (os.access(self.PROC, os.R_OK) and 
+                self.config.get('force_psutil') != True):
             file = open(self.PROC)
             data = file.read()
             file.close()
@@ -90,7 +91,7 @@ class MemoryCollector(diamond.collector.Collector):
                     name = name.rstrip(':')
                     value = int(value)
 
-                    if name not in _KEY_MAPPING:
+                    if (name not in _KEY_MAPPING and 'detailed' not in self.config):
                         continue 
 
                     if name in 'MemTotal':
@@ -98,15 +99,22 @@ class MemoryCollector(diamond.collector.Collector):
                     elif name in 'MemAvailable':
                         memory_available = value
                     
+                    for unit in self.config['byte_unit']:
+                        value = diamond.convertor.binary.convert(value=value, oldUnit=units, newUnit=unit)
+                        self.publish(name, value, metric_type='GAUGE')
+
+                        # TODO: We only support only one unit node here
+                        break
+
                 except ValueError:
                     continue
 
             if memory_total is not None and memory_available is not None:
                 memory_used = memory_total - memory_available
-                memory_used_percent = memory_used / memory_total * 100.0
+                memory_used_percent = Decimal( str(100.0 * memory_used / memory_total))
 
                 self.publish('MemUsedPercentage',
-                    round(memory_used, 2),
+                    round(memory_used_percent, 2),
                     metric_type='GAUGE')
 
                 return True
@@ -130,9 +138,12 @@ class MemoryCollector(diamond.collector.Collector):
 
             for unit in self.config['byte_unit']:
                 memory_total = value = diamond.convertor.binary.convert(
+                    value=phymem_usage.total, oldUnit=units, newUnit=unit)
+                self.publish('MemTotal', value, metric_type='GAUGE')
+
+                memory_available = value = diamond.convertor.binary.convert(
                     value=phymem_usage.available, 
-                    oldUnit=units, newUnit=unit)
-                
+                    oldUnit=units, newUnit=unit)                
                 self.publish("MemAvailable", value, metric_type='GAUGE')
 
                 memory_used = memory_total - memory_available

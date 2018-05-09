@@ -420,7 +420,7 @@ class Collector():
 
         # Create metric
         try:
-           metric = Metric(path, value, raw_value=raw_value, timestamp=None, precision=precision, host=self.get_hostname, 
+            metric = Metric(path, value, raw_value=raw_value, timestamp=None, precision=precision, host=self.get_hostname, 
                 metric_type=metric_type, ttl=ttl)
         except DiamondException:
             self.log.error(("Error when creating new Metric: path=%r, value=%r"), path, value)
@@ -431,15 +431,15 @@ class Collector():
         self.publish_metric(metric)
 
     def publish_metric(self, metric):
-         """
-         Publish a Metric object
+        """
+        Publish a Metric object
          
-         Arguments:
-             metric {[type]} -- [description]
+        Arguments:
+            metric {[type]} -- [description]
          """
-         # Process Metric
-         for handler in self.handlers:
-             handler._process(metric)
+        # Process Metric
+        for handler in self.handlers:
+            handler._process(metric)
 
     def publish_gauge(
         self, name, value, precision=0, instance=None):
@@ -457,21 +457,9 @@ class Collector():
         return self.publish(name, value, raw_value=raw_value, 
                         precision=precision, metric_type='COUNTER', instance=instance)
 
-    def derivative(self, name, value, new, max_value=0, time_delta=0, interval=None, allow_negative=False, instance=None):
+    def derivative(self, name, new, max_value=0, time_delta=True, interval=None, allow_negative=False, instance=None):
         """
         Calculate the derivative of the metric
-        
-        Arguments:
-            name {[type]} -- [description]
-            value {[type]} -- [description]
-            new {[type]} -- [description]
-        
-        Keyword Arguments:
-            max_value {int} -- [description] (default: {0})
-            time_delta {int} -- [description] (default: {0})
-            interval {[type]} -- [description] (default: {None})
-            allow_negative {bool} -- [description] (default: {False})
-            instance {[type]} -- [description] (default: {None})
         """
         # Format Metric Path
         path = self.get_metric_path(name, instance=instance)
