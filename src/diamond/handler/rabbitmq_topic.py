@@ -2,10 +2,11 @@
 
 """
 Output the collected values to RabbitMQ Topic Exchange.
-This allows for 'subscribing' to messages beased on the routing key, which is the metric path 
+This allows for 'subscribing' to messages beased on the routing key, 
+which is the metric path.
 """
 
-from Handler import Handler
+from diamond.handler.Handler import Handler
 
 try:
     import pika
@@ -40,17 +41,16 @@ class rmqHandler(Handler):
         self.channel = None
 
         # Initialize Options
-        # self.server = self.config.get('server', '127.0.0.1')
-        self.server = '127.0.0.1'
+        self.server = self.config.get('server', '127.0.0.1')
         self.port = self.config.get('port', 5672)
         self.topic_exchange = self.config.get('topic_exchange', 'diamond')
         self.vhost = self.config.get('vhost', '')
         self.user = self.config.get('user', 'guest')
         self.password = self.config.get('password', 'guest')
         self.routing_key = self.config.get('routing_key', 'metric')
-        self.custom_routing_key = self.config.get('custom_routing_key', 'diamond')
+        self.custom_routing_key = self.config.get(
+            'custom_routing_key', 'diamond')
 
-        print('host', self.server)
         if not pika:
             self.log.error('pika import failed. Handler disabled')
             self.enabled = False
@@ -59,7 +59,6 @@ class rmqHandler(Handler):
         # Create rabbitMQ topic exchange and bind
         try:
             self._bind()
-
         except pika.exceptions.AMQPConnectionError:
             self.log.error("Failed to bind to rabbitMQ topic exchange")
 
@@ -103,15 +102,22 @@ class rmqHandler(Handler):
         """
         Create socket and bind
         """
-        credentials = pika.PlainCredentials(self.user,  self.password)
-        print('host', self.server)
-        params = pika.ConnectionParameters(credentials=credentials, host=self.server, virtual_host=self.vhost, port=self.port)
+        credentials = pika.PlainCredentials(
+            self.user,  self.password)
+        
+        params = pika.ConnectionParameters(
+            credentials=credentials, 
+            host=self.server, 
+            virtual_host=self.vhost, 
+            port=self.port)
 
         self.connection = pika.BlockingConnection(params)
         self.channel = self.connection.channel()
 
         # NOTE: PIKA version uses 'exchange_type' instead of 'type'
-        self.channel.exchange_declare(exchange=self.topic_exchange, exchange_type="topic")
+        self.channel.exchange_declare(
+            exchange=self.topic_exchange, 
+            exchange_type="topic")
 
     def __del__(self):
         """
@@ -143,10 +149,12 @@ class rmqHandler(Handler):
             # of how to allow more routing keys
 
             'host': lambda: metric.host,
-            'metric.path': metric.getMetricPath,
-            'path.prefix': metric.getPathPrefix,
-            'collector.path': metric.getCollectorPath,
-
+            #'metric.path': metric.getMetricPath,
+            'metric.path': 'miltos',
+            #'path.prefix': metric.getPathPrefix,
+            'path.prefix': 'tsimplis',
+            #'collector.path': metric.getCollectorPath,
+            'collector.path': 'lalala',
         }
 
         try:

@@ -66,7 +66,7 @@ try:
     # import mosquitto
     import paho.mqtt.client as mqtt
 except ImportError:
-    mosquitto = None
+    mqtt = None
 
 __author__ = 'Jan-Piet Mens'
 __email__ = 'jpmens@gmail.com'
@@ -101,6 +101,7 @@ class MQTTHandler(Handler):
         self.qos = int(self.config.get('qos', 0))
         self.prefix = self.config.get('prefix', "")
         self.tls = self.config.get('tls', False)
+        
         self.timestamp = 0
         try:
             self.timestamp = self.config['timestamp']
@@ -128,7 +129,7 @@ class MQTTHandler(Handler):
             self.port = int(self.config.get('port', 8883))
 
             self.cafile = self.config.get('cafile', None)
-            self.cert = self.config.get('certfile', None)
+            self.certfile = self.config.get('certfile', None)
             self.keyfile = self.config.get('keyfile', None)
 
             if None in [self.cafile, self.certfile, self.keyfile]:
@@ -182,7 +183,8 @@ class MQTTHandler(Handler):
         Arguments:
             metric {[type]} -- [description]
         """
-        if not mosquitto:
+        # if not mosquitto:
+        if not mqtt:
             return
 
         line = str(metric)

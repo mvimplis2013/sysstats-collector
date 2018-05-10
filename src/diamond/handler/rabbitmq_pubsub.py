@@ -3,7 +3,7 @@
 """
 Output the collected values to RabbitMQ pub/sub channel
 """
-from Handler import Handler
+from diamond.handler.Handler import Handler
 import time
 
 try:
@@ -24,6 +24,8 @@ class rmqHandler(Handler):
         Keyword Arguments:
             config {[type]} -- [description] (default: {None})
         """
+
+        print("$$$$$$$$$$$$", config)
 
         # Initialize Handler
         Handler.__init__(self, config)
@@ -50,9 +52,10 @@ class rmqHandler(Handler):
         self.rmq_user = None
         self.rmq_password = None
         self.rmq_vhost = "/"
-        self.rmq_exhange_type = 'fanout'
+        self.rmq_exchange_type = 'fanout'
         self.rmq_durable = True
-        self.rmq_heartbeat_interval = 300
+        self.rmq_heartbeat_interval = 600
+        self.blocked_connection_timeout = 300
 
         self.get_config()
 
@@ -143,6 +146,7 @@ class rmqHandler(Handler):
             virtual_host=self.rmq_vhost,
             credentials=credentials,
             heartbeat_interval=self.rmq_heartbeat_interval,
+            blocked_connection_timeout=self.blocked_connection_timeout,
             retry_delay=5,
             connection_attempts=3
         )
@@ -158,10 +162,11 @@ class rmqHandler(Handler):
                 
                 self.channels[rmq_server].exchange_declare(
                     exchange=self.rmq_exchange,
-                    type=self.rmq_exchange_type,
+                    exchange_type=self.rmq_exchange_type,
                     durable=self.rmq_durable
                 )
 
+                
                 # Reset reconnect_interval after a successful connection
                 self.reconnect_interval = 1
             except Exception as exception:
@@ -171,55 +176,58 @@ class rmqHandler(Handler):
                     self._unbind(rmq_server)
 
                 if self.reconnect_interval >= 16:
+                    self.log.debug("Ready to Exit !!!")
                     break
 
                 if self.reconnect_interval < 16:
+                    self.log.debug("Ready to Reconnect !!!!")
                     self.reconnect_interval = self.reconnect_interval*2
 
                 time.sleep(self.reconnect_interval)
 
-        def _unbind(self, rmq_server=None):
-            """ Close AMQP connection and unset channel """
-            try:
-                self.connections[rmq_server].close()
-            except AttributeError:
-                pass
+    def _unbind(self, rmq_server=None):
+        """ Close AMQP connection and unset channel """
+        try:
+            self.connections[rmq_server].close()
+        except AttributeError:
+            pass
 
-            self.connections[rmq_server] = None
-            self.channels[rmq_server] = None
+        self.connections[rmq_server] = None
+        self.channels[rmq_server] = None
 
-        def __del__(self):
-            """
-            Destroy instance of the rmqHandler class
-            """
-            if hasattr(self, 'connections'):
-                for rmq_server in self.connections.keys():
-                    self._unbind(rmq_server)
-
-        def process(self, metric):
-            """
-            Process a metric and send it to RMQ pub socket
-            
-            Arguments:
-                metric {[type]} -- [description]
-            """
+    def __del__(self):
+        """
+        Destroy instance of the rmqHandler class
+        """
+        if hasattr(self, 'connections'):
             for rmq_server in self.connections.keys():
-                try:
-                    if ((self.connections[rmq_server] is None or 
-                            self.connections[rmq_server].is_open is False)):
-                        self._bind(rmq_server)
+                self._unbind(rmq_server)
+
+    def process(self, metric):
+        """
+        Process a metric and send it to RMQ pub socket
+            
+        Arguments:
+            metric {[type]} -- [description]
+        """
+        self.log.debug("Mat et Corps en Opposition: %s" % "plancemag")
+        for rmq_server in self.connections.keys():
+            try:
+                if ((self.connections[rmq_server] is None or 
+                        self.connections[rmq_server].is_open is False)):
+                    self._bind(rmq_server)
 
                     channel = self.channels[rmq_server]
                     channel.basic_publish(exchange=self.rmq_exchange, routing_key='', body="%s" % metric)
                 
-                except Exception as exception:
-                    self.log.error("Failed publishing to %s, attempting reconnect", rmq_server)
-                    self.log.debug("Caught exception: %s", exception)
-                    self._unbind(rmq_server)
-                    self._bind(rmq_server)
+            except Exception as exception:
+                self.log.error("Failed publishing to %s, attempting reconnect", rmq_server)
+                self.log.debug("Caught exception: %s", exception)
+                self._unbind(rmq_server)
+                self._bind(rmq_server)
 
 
-
+ 
 
             
             

@@ -97,6 +97,12 @@ class MySQLHandler(Handler):
 
         try:
             cursor = self.conn.cursor()
+
+            share = ("INSERT INTO %s (%s, %s, %s) VALUES(%%s, %%s, %%s)"
+                    % (self.table, self.col_metric, self.col_time, self.col_value),
+                    (data[0], data[2], data[1]))
+            self.log.debug("Insert Statment ____ %s", share)
+
             cursor.execute("INSERT INTO %s (%s, %s, %s) VALUES(%%s, %%s, %%s)"
                     % (self.table, self.col_metric, self.col_time, self.col_value),
                     (data[0], data[2], data[1]))
@@ -114,9 +120,12 @@ class MySQLHandler(Handler):
         """
         try:
             self._close()
+            self.log.debug("MySQL Host: %s" % self.hostname)
+            self.log.debug("MySQL Port: %d" % int(self.port))
+
             self.conn = pymysql.connect(
                 host=self.hostname, 
-                port=self.port, 
+                port=int(self.port), 
                 user=self.username, 
                 password=self.password, 
                 db=self.database)
