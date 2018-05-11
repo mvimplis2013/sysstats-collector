@@ -4,7 +4,9 @@
 Output the collected values to a ZeroMQ pub/ sub channel
 """
 
-from Handler import Handler
+from diamond.handler.Handler import Handler
+
+import random 
 
 try:
     import zmq
@@ -80,7 +82,8 @@ class zmqHandler(Handler):
         
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
-        self.socket.bind("tcp://*:%i" % self.port)
+        print("@@@@@@@@@@@@@@@@@@@@@@@@Zero MQ Port:", self.port)
+        self.socket.bind("tcp://*:%s" % self.port)
 
     def __del__(self):
         """
@@ -99,5 +102,11 @@ class zmqHandler(Handler):
             return
 
         # Send data as ...
-        self.socket.send("%s" % str(metric))
+        # self.socket.send("%s" % str(metric))
+        print("```````````````````````````Where is ZeroMQ ")
+        #self.socket.send_string("%s" % "Hello")
+        topic = random.randrange(999, 10005)
+        messagedata = random.randrange(1, 215) - 80
+
+        self.socket.send("%d %d" % (topic, messagedata))
 
