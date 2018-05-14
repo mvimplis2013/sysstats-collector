@@ -181,7 +181,7 @@ class Server():
                     running_processes.append(process.name)
                 running_processes = set(running_processes)
 
-                print("Running Processes:", running_processes)
+                #print("Running Processes:", running_processes)
 
                 ############################################
                 # Collectors 

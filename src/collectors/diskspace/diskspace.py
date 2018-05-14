@@ -188,7 +188,7 @@ class DiskSpaceCollector(diamond.collector.Collector):
         return result
 
     def collect(self):
-        self.log.debug("*********************************************")
+        #self.log.debug("*********************************************")
         labels = self.get_disk_labels()
         results = self.get_file_systems()
         if not results:

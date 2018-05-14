@@ -116,12 +116,12 @@ def handler_process(handlers, metric_queue, log):
     log.debug('Starting process %s', proc.name)
 
     while(True):
-        log.debug('Inside Metric Monitoring')
+        #log.debug('Inside Metric Monitoring')
         metric = metric_queue.get(block=True, timeout=None)
 
         for handler in handlers:
             if metric is not None:
-                log.debug('Ready for Assign Handler to New Metric')
+                #log.debug('Ready for Assign Handler to New Metric')
                 handler._process(metric)
             else:
                 handler._flush()            

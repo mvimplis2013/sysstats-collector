@@ -75,12 +75,16 @@ class Handler(object):
         Arguments:
             metric {[type]} -- [description]
         """
+        print("***************** Edge Analytics ******************")
         if not self.enabled:
             return
+
+        print("***************** Edge Analytics 2 ******************")
 
         try:
             try:
                 self.lock.acquire()
+                print("***************** Edge Analytics 3 ******************")
                 self.process(metric)
             except Exception:
                 self.log.error(traceback.format_exc())
