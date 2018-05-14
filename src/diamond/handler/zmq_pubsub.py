@@ -7,6 +7,8 @@ Output the collected values to a ZeroMQ pub/ sub channel
 from diamond.handler.Handler import Handler
 
 import random 
+import time
+import numpy
 
 try:
     import zmq
@@ -47,7 +49,10 @@ class zmqHandler(Handler):
         self.port = int(self.config['port'])
 
         # Create ZMQ pub socket and bind
-        self._bind()
+        """try:
+            self._bind()
+        except Exception as e:
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", e)"""
 
     def get_default_config_help(self):
         """
@@ -81,9 +86,28 @@ class zmqHandler(Handler):
             return
         
         self.context = zmq.Context()
+        #self.context = zmq.Context.instance()
+        
         self.socket = self.context.socket(zmq.PUB)
+        #self.socket = self.context.socket(zmq.PUSH)
+        
         print("@@@@@@@@@@@@@@@@@@@@@@@@Zero MQ Port:", self.port)
-        self.socket.bind("tcp://*:%s" % self.port)
+        self.socket.bind("tcp://*:1234") # %s" % self.port)
+        #self.socket.setsockopt(zmq.SUBSCRIBE, b"")
+        
+        #self.socket.bind("ipc:///tmp/zmqtest") 
+
+        #time.sleep(1)
+
+        print("2222222222222222222222222222222222222222222222")
+
+        ctx = zmq.Context.instance()
+        s = ctx.socket(zmq.REP)
+        s.bind("tcp://*:1235")
+        s.recv()
+        s.send(b"GO")
+
+        print("33333333333333333333333333333333333333333333333")
 
     def __del__(self):
         """
@@ -98,15 +122,36 @@ class zmqHandler(Handler):
         Arguments:
             metric {[type]} -- [description]
         """
+        print("@@@@@@@@@@@Le Jibe")
         if not zmq:
             return
+
+        try:
+            self._bind()
+        except Exception as e:
+            print("---------------->", e)
+
+        """ctx = zmq.Context.instance()
+        s = ctx.socket(zmq.REP)
+        s.bind("tcp://*:1235")
+        s.recv()
+        s.send(b"GO")"""
 
         # Send data as ...
         # self.socket.send("%s" % str(metric))
         print("```````````````````````````Where is ZeroMQ ")
-        #self.socket.send_string("%s" % "Hello")
-        topic = random.randrange(999, 10005)
-        messagedata = random.randrange(1, 215) - 80
+        #self.socket.send(b"Hello")
+        #time.sleep(1)
+        """for i in range(30):
+            #time.sleep(2)
+            topic = random.randrange(999, 10005)
+            messagedata = numpy.random.rand(2, 2)
+            
+            #self.socket.send_pyobj(messagedata)
+            
+            #time.sleep(1)
+            print("Ready to Send PyObject #", i, " = ... ", messagedata)
+            
 
-        self.socket.send("%d %d" % (topic, messagedata))
+        #time.sleep(1) """
 
