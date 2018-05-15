@@ -158,6 +158,7 @@ class rmqHandler(Handler):
         }
 
         try:
+            
             self.channel.basic_publish(
                 exchange=self.topic_exchange,
                 routing_key=routingKeyDic[self.routing_key](),
