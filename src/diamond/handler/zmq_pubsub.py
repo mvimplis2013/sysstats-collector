@@ -7,10 +7,7 @@ Output the collected values to a ZeroMQ pub/ sub channel
 from diamond.handler.Handler import Handler
 
 import random 
-<<<<<<< HEAD
-=======
 import time
->>>>>>> 450ba17000e6de80cf3f901233518d625ceeef1d
 import numpy
 
 try:
@@ -53,10 +50,10 @@ class zmqHandler(Handler):
         self.port = int(self.config['port'])
 
         # Create ZMQ pub socket and bind
-        try:
+        """try:
             self._bind()
         except Exception as e:
-            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", e)
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", e)"""
 
     def get_default_config_help(self):
         """
@@ -93,10 +90,6 @@ class zmqHandler(Handler):
         #self.context = zmq.Context.instance()
         
         self.socket = self.context.socket(zmq.PUB)
-<<<<<<< HEAD
-        print("@@@@@@@@@@@@@@@@@@@@@@@@Zero MQ Port:", self.port)
-        self.socket.bind("tcp://127.0.0.1:5556") # % self.port)
-=======
         #self.socket = self.context.socket(zmq.PUSH)
         
         #print("@@@@@@@@@@@@@@@@@@@@@@@@Zero MQ Port:", self.port)
@@ -120,7 +113,6 @@ class zmqHandler(Handler):
         self.socket.send_pyobj([1,2,3])
         #self.socket.send_pyobj(["Hello", "Miltos"])
         #time.sleep(1)
->>>>>>> 450ba17000e6de80cf3f901233518d625ceeef1d
 
     def __del__(self):
         """
@@ -135,31 +127,16 @@ class zmqHandler(Handler):
         Arguments:
             metric {[type]} -- [description]
         """
-<<<<<<< HEAD
-        print('**************************** Navigating the Labyrinth ********************************************')
-
-=======
         print("@@@@@@@@@@@Le Jibe")
->>>>>>> 450ba17000e6de80cf3f901233518d625ceeef1d
         if not zmq:
             self.log.info("ZMQ not available")
             return
 
-<<<<<<< HEAD
-        # Send data as ...
-        # self.socket.send("%s" % str(metric))
-        print("```````````````````````````Where is ZeroMQ ")
-        #self.socket.send_string("%s" % "Hello")
-        topic = random.randrange(999, 10005)
-        messagedata = numpy.random.rand(2,2)
-
         try:
-            #self.socket.send_string("%i %i" % (topic, messagedata))
-            self.socket.send_pyobj(messagedata)
+            self._bind()
         except Exception as e:
-            print(e)
-
-=======
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", e)
+            
         try:
             #self._bind()
         
@@ -193,4 +170,3 @@ class zmqHandler(Handler):
             print("---------------->", e)
     
  
->>>>>>> 450ba17000e6de80cf3f901233518d625ceeef1d
