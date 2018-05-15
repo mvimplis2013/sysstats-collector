@@ -32,13 +32,13 @@ class QueueHandler(Handler):
             metric {[type]} -- [description]
         """
         try:
-            self.log.debug("Metric:%s", metric)
+            #self.log.debug("Metric:%s", metric)
             
             #self.queue.put(metric, block=False)
             self.queue.put(str(metric), False)
             #self.queue.put((1,1), False)
 
-            self.log.debug("Queue Add Item:%s" % self.queue)
+            #self.log.debug("Queue Add Item:%s" % self.queue)
         except queue.Full:
             self.__throttle_error("Queue Full, check handlers for delays")
 

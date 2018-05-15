@@ -136,7 +136,7 @@ class Server():
             sys.exit(1)
 
         handlers = self.config['server'].get('handlers')
-        print("&&&&&&&&&&&&&&&", handlers)
+        #print("&&&&&&&&&&&&&&&", handlers)
         if isinstance(handlers, str):
             handlers = [handlers]
 
@@ -145,7 +145,7 @@ class Server():
             handlers.remove('diamond.handlers.queue.QueueHandler')
 
         self.handlers = load_handlers(self.config, handlers)
-        print("Handlers:", self.handlers)
+        #print("Handlers:", self.handlers)
 
         QueueHandler = load_dynamic_class(
             'diamond.handler.queue.QueueHandler',
@@ -181,7 +181,7 @@ class Server():
                     running_processes.append(process.name)
                 running_processes = set(running_processes)
 
-                print("Running Processes:", running_processes)
+                #print("Running Processes:", running_processes)
 
                 ############################################
                 # Collectors 

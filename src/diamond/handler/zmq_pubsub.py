@@ -44,15 +44,16 @@ class zmqHandler(Handler):
         self.context = None
         
         self.socket = None
+        self.s = None
 
         # Initialize options
         self.port = int(self.config['port'])
 
         # Create ZMQ pub socket and bind
-        """try:
+        try:
             self._bind()
         except Exception as e:
-            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", e)"""
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", e)
 
     def get_default_config_help(self):
         """
@@ -91,23 +92,27 @@ class zmqHandler(Handler):
         self.socket = self.context.socket(zmq.PUB)
         #self.socket = self.context.socket(zmq.PUSH)
         
-        print("@@@@@@@@@@@@@@@@@@@@@@@@Zero MQ Port:", self.port)
-        self.socket.bind("tcp://*:1234") # %s" % self.port)
+        #print("@@@@@@@@@@@@@@@@@@@@@@@@Zero MQ Port:", self.port)
+        self.socket.bind("tcp://127.0.0.1:5555") # %s" % self.port)
         #self.socket.setsockopt(zmq.SUBSCRIBE, b"")
+        
+        #self.socket.connect("tcp://127.0.0.1:5555") # %s" % self.port)
+        #self.socket.setsockopt(zmq.SNDHWM, 1)
         
         #self.socket.bind("ipc:///tmp/zmqtest") 
 
         #time.sleep(1)
 
-        print("2222222222222222222222222222222222222222222222")
-
         ctx = zmq.Context.instance()
-        s = ctx.socket(zmq.REP)
-        s.bind("tcp://*:1235")
-        s.recv()
-        s.send(b"GO")
+        self.s = ctx.socket(zmq.REP)
+        self.s.bind("tcp://127.0.0.1:5556")
+        self.s.recv()
+        self.s.send(b"GO")
+        #time.sleep(1)
 
-        print("3333333333333333333333333333333333333333333333")
+        self.socket.send_pyobj([1,2,3])
+        #self.socket.send_pyobj(["Hello", "Miltos"])
+        #time.sleep(1)
 
     def __del__(self):
         """
@@ -127,31 +132,35 @@ class zmqHandler(Handler):
             return
 
         try:
-            self._bind()
+            #self._bind()
+        
+            #ctx = zmq.Context.instance()
+            #s = ctx.socket(zmq.REP)
+            #s.bind("tcp://*:1235")
+            #s.recv()
+            #s.send(b"GO")
+
+            # Send data as ...
+            # self.socket.send("%s" % str(metric))
+            print("```````````````````````````Where is ZeroMQ ")
+        
+            self.s.recv()
+            self.s.send(b"GO")
+            
+            self.socket.send_pyobj(["Hello"])
+            #self.socket.send(b"Hello")
+            #time.sleep(1)
+        
+            """for i in range(10):
+                #time.sleep(2)
+                topic = random.randrange(999, 10005)
+                messagedata = numpy.random.rand(2, 2)
+            
+                self.socket.send_pyobj(messagedata)
+            
+                #time.sleep(0.1)
+                print("Ready to Send PyObject #", i, " = ... ", messagedata)"""
         except Exception as e:
             print("---------------->", e)
-
-        """ctx = zmq.Context.instance()
-        s = ctx.socket(zmq.REP)
-        s.bind("tcp://*:1235")
-        s.recv()
-        s.send(b"GO")"""
-
-        # Send data as ...
-        # self.socket.send("%s" % str(metric))
-        print("```````````````````````````Where is ZeroMQ ")
-        #self.socket.send(b"Hello")
-        #time.sleep(1)
-        """for i in range(30):
-            #time.sleep(2)
-            topic = random.randrange(999, 10005)
-            messagedata = numpy.random.rand(2, 2)
-            
-            #self.socket.send_pyobj(messagedata)
-            
-            #time.sleep(1)
-            print("Ready to Send PyObject #", i, " = ... ", messagedata)
-            
-
-        #time.sleep(1) """
-
+    
+ 
