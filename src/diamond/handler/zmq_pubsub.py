@@ -7,6 +7,10 @@ Output the collected values to a ZeroMQ pub/ sub channel
 from diamond.handler.Handler import Handler
 
 import random 
+<<<<<<< HEAD
+=======
+import time
+>>>>>>> 450ba17000e6de80cf3f901233518d625ceeef1d
 import numpy
 
 try:
@@ -43,12 +47,16 @@ class zmqHandler(Handler):
         self.context = None
         
         self.socket = None
+        self.s = None
 
         # Initialize options
         self.port = int(self.config['port'])
 
         # Create ZMQ pub socket and bind
-        self._bind()
+        try:
+            self._bind()
+        except Exception as e:
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", e)
 
     def get_default_config_help(self):
         """
@@ -82,9 +90,37 @@ class zmqHandler(Handler):
             return
         
         self.context = zmq.Context()
+        #self.context = zmq.Context.instance()
+        
         self.socket = self.context.socket(zmq.PUB)
+<<<<<<< HEAD
         print("@@@@@@@@@@@@@@@@@@@@@@@@Zero MQ Port:", self.port)
         self.socket.bind("tcp://127.0.0.1:5556") # % self.port)
+=======
+        #self.socket = self.context.socket(zmq.PUSH)
+        
+        #print("@@@@@@@@@@@@@@@@@@@@@@@@Zero MQ Port:", self.port)
+        self.socket.bind("tcp://127.0.0.1:5555") # %s" % self.port)
+        #self.socket.setsockopt(zmq.SUBSCRIBE, b"")
+        
+        #self.socket.connect("tcp://127.0.0.1:5555") # %s" % self.port)
+        #self.socket.setsockopt(zmq.SNDHWM, 1)
+        
+        #self.socket.bind("ipc:///tmp/zmqtest") 
+
+        #time.sleep(1)
+
+        ctx = zmq.Context.instance()
+        self.s = ctx.socket(zmq.REP)
+        self.s.bind("tcp://127.0.0.1:5556")
+        self.s.recv()
+        self.s.send(b"GO")
+        #time.sleep(1)
+
+        self.socket.send_pyobj([1,2,3])
+        #self.socket.send_pyobj(["Hello", "Miltos"])
+        #time.sleep(1)
+>>>>>>> 450ba17000e6de80cf3f901233518d625ceeef1d
 
     def __del__(self):
         """
@@ -99,12 +135,17 @@ class zmqHandler(Handler):
         Arguments:
             metric {[type]} -- [description]
         """
+<<<<<<< HEAD
         print('**************************** Navigating the Labyrinth ********************************************')
 
+=======
+        print("@@@@@@@@@@@Le Jibe")
+>>>>>>> 450ba17000e6de80cf3f901233518d625ceeef1d
         if not zmq:
             self.log.info("ZMQ not available")
             return
 
+<<<<<<< HEAD
         # Send data as ...
         # self.socket.send("%s" % str(metric))
         print("```````````````````````````Where is ZeroMQ ")
@@ -118,3 +159,38 @@ class zmqHandler(Handler):
         except Exception as e:
             print(e)
 
+=======
+        try:
+            #self._bind()
+        
+            #ctx = zmq.Context.instance()
+            #s = ctx.socket(zmq.REP)
+            #s.bind("tcp://*:1235")
+            #s.recv()
+            #s.send(b"GO")
+
+            # Send data as ...
+            # self.socket.send("%s" % str(metric))
+            print("```````````````````````````Where is ZeroMQ ")
+        
+            self.s.recv()
+            self.s.send(b"GO")
+            
+            self.socket.send_pyobj(["Hello"])
+            #self.socket.send(b"Hello")
+            #time.sleep(1)
+        
+            """for i in range(10):
+                #time.sleep(2)
+                topic = random.randrange(999, 10005)
+                messagedata = numpy.random.rand(2, 2)
+            
+                self.socket.send_pyobj(messagedata)
+            
+                #time.sleep(0.1)
+                print("Ready to Send PyObject #", i, " = ... ", messagedata)"""
+        except Exception as e:
+            print("---------------->", e)
+    
+ 
+>>>>>>> 450ba17000e6de80cf3f901233518d625ceeef1d
