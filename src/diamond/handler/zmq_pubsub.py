@@ -42,10 +42,8 @@ class zmqHandler(Handler):
 
         # Initialize data 
         self.context = None
-        
         self.socket = None
-        self.s = None
-
+        
         # Initialize options
         self.port = int(self.config['port'])
 
@@ -86,14 +84,14 @@ class zmqHandler(Handler):
         if not zmq:
             return
         
-        self.context = zmq.Context()
+        #self.context = zmq.Context()
         #self.context = zmq.Context.instance()
         
-        self.socket = self.context.socket(zmq.PUB)
+        #self.socket = self.context.socket(zmq.PUB)
         #self.socket = self.context.socket(zmq.PUSH)
         
         #print("@@@@@@@@@@@@@@@@@@@@@@@@Zero MQ Port:", self.port)
-        self.socket.bind("tcp://127.0.0.1:5555") # %s" % self.port)
+        #self.socket.bind("tcp://127.0.0.1:5555") # %s" % self.port)
         #self.socket.setsockopt(zmq.SUBSCRIBE, b"")
         
         #self.socket.connect("tcp://127.0.0.1:5555") # %s" % self.port)
@@ -104,13 +102,13 @@ class zmqHandler(Handler):
         #time.sleep(1)
 
         ctx = zmq.Context.instance()
-        self.s = ctx.socket(zmq.REP)
-        self.s.bind("tcp://127.0.0.1:5556")
-        self.s.recv()
-        self.s.send(b"GO")
+        s = ctx.socket(zmq.REP)
+        s.bind("tcp://127.0.0.1:5556")
+        s.recv()
+        s.send(b"GO")
         #time.sleep(1)
 
-        self.socket.send_pyobj([1,2,3])
+        #self.socket.send_pyobj([1,2,3])
         #self.socket.send_pyobj(["Hello", "Miltos"])
         #time.sleep(1)
 
@@ -133,10 +131,14 @@ class zmqHandler(Handler):
             return
 
         try:
+            self.context = zmq.Context.instance()
+            self.socket = self.context.socket(zmq.PUB)
+            self.socket.bind("tcp://127.0.0.1:5555") # %s" % self.port)
+        
             self._bind()
         except Exception as e:
             print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS", e)
-            
+
         try:
             #self._bind()
         
@@ -150,8 +152,8 @@ class zmqHandler(Handler):
             # self.socket.send("%s" % str(metric))
             print("```````````````````````````Where is ZeroMQ ")
         
-            self.s.recv()
-            self.s.send(b"GO")
+            #self.s.recv()
+            #self.s.send(b"GO")
             
             self.socket.send_pyobj(["Hello"])
             #self.socket.send(b"Hello")
